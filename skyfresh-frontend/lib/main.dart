@@ -21,9 +21,16 @@ class SKYfreshApp extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
             seedColor: AppTheme.primary,
-            brightness: Brightness.dark,
+            brightness: Brightness.light,
           ),
+          scaffoldBackgroundColor: AppTheme.bg,
           useMaterial3: true,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: AppTheme.surface,
+            elevation: 0,
+            iconTheme: IconThemeData(color: AppTheme.textMain),
+            titleTextStyle: TextStyle(color: AppTheme.textMain, fontSize: 18, fontWeight: FontWeight.w700),
+          ),
         ),
         home: const SplashScreen(),
       ),

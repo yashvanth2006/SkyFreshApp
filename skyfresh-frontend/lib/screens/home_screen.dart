@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/cart_provider.dart';
-import 'package:skyfresh/ApiService.dart';
+import 'package:skyfresh/api_service.dart';
+import 'package:skyfresh/models/user_profile.dart';
+import 'package:skyfresh/screens/profile_screen.dart';
+import 'package:skyfresh/screens/login_screen.dart';
 import 'cart_screen.dart';
 import 'notifications_screen.dart';
 import 'reviews_screen.dart';
@@ -16,6 +19,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _userName = 'there';
+  UserProfile? _profile;
+  bool _profileLoading = true;
+  bool _profileError = false;
   int _selectedCategory = 0;
   int _currentTab = 0;
   final int _notifCount = 5;
@@ -53,7 +59,38 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadUser() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() => _userName = prefs.getString('userName') ?? 'there');
+    final storedName = prefs.getString('userName') ?? 'there';
+    setState(() => _userName = storedName);
+    await _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() {
+      _profileLoading = true;
+      _profileError = false;
+    });
+
+    final profile = await ApiService.getProfile();
+    if (!mounted) return;
+
+    setState(() {
+      _profile = profile;
+      _profileLoading = false;
+      _profileError = profile == null;
+      if (profile != null) {
+        _userName = profile.name;
+      }
+    });
+  }
+
+  Future<void> _logout() async {
+    await ApiService.logout();
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
   }
 
   Future<void> _loadProducts() async {
@@ -116,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: AppTheme.darkBg,
+      backgroundColor: AppTheme.bg,
       body: screens[_currentTab],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -469,9 +506,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text('👤', style: TextStyle(fontSize: 46))),
                 ),
                 const SizedBox(height: 16),
-                Text(_userName,
-                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800,
-                      letterSpacing: -0.4, color: AppTheme.textMain)),
+                if (_profileLoading)
+                  const CircularProgressIndicator(color: AppTheme.primary)
+                else if (_profileError)
+                  const Text('Unable to load profile', style: TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.w600))
+                else
+                  Column(
+                    children: [
+                      Text(_profile?.name ?? _userName,
+                        style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800,
+                            letterSpacing: -0.4, color: AppTheme.textMain)),
+                      const SizedBox(height: 4),
+                      Text(_profile?.phone ?? '',
+                        style: const TextStyle(color: AppTheme.textMuted, fontSize: 14, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
                 const SizedBox(height: 4),
                 const Text('SKYfresh Premium Member 🌿',
                   style: TextStyle(color: AppTheme.primary, fontSize: 14, fontWeight: FontWeight.w600)),
@@ -479,17 +528,69 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _profileTile(Icons.shopping_bag_rounded, 'My Orders'),
-          _profileTile(Icons.location_on_rounded, 'My Addresses'),
-          _profileTile(Icons.star_rounded, 'My Reviews'),
-          _profileTile(Icons.help_outline_rounded, 'Help & Support'),
-          _profileTile(Icons.logout_rounded, 'Logout', isDestructive: true),
+          _profileTile(
+            Icons.shopping_bag_rounded,
+            'My Orders',
+            onTap: () {},
+          ),
+          _profileTile(
+            Icons.location_on_rounded,
+            'My Addresses',
+            onTap: () {},
+          ),
+          _profileTile(
+            Icons.star_rounded,
+            'My Reviews',
+            onTap: () {},
+          ),
+          _profileTile(
+            Icons.help_outline_rounded,
+            'Help & Support',
+            onTap: () {},
+          ),
+          _profileTile(
+            Icons.person_rounded,
+            'View Profile',
+            onTap: _openProfilePage,
+          ),
+          _profileTile(Icons.logout_rounded, 'Logout', isDestructive: true, onTap: _logout),
         ],
       ),
     );
   }
 
-  Widget _profileTile(IconData icon, String label, {bool isDestructive = false}) {
+  void _openProfilePage() {
+    if (_profile == null && !_profileLoading) {
+      _loadProfile().then((_) {
+        if (!mounted) return;
+        _pushProfileScreen();
+      });
+      return;
+    }
+
+    _pushProfileScreen();
+  }
+
+  void _pushProfileScreen() {
+    final profile = _profile ?? UserProfile(
+      id: 'unknown',
+      name: _userName,
+      phone: '',
+      joinedAt: DateTime.now(),
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProfileScreen(
+          user: profile,
+          onLogout: _logout,
+        ),
+      ),
+    );
+  }
+
+  Widget _profileTile(IconData icon, String label, {bool isDestructive = false, VoidCallback? onTap}) {
     final color = isDestructive ? Colors.redAccent : AppTheme.textMain;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -499,6 +600,7 @@ class _HomeScreenState extends State<HomeScreen> {
         border: Border.all(color: AppTheme.border),
       ),
       child: ListTile(
+        onTap: onTap,
         leading: Container(
           width: 42, height: 42,
           decoration: BoxDecoration(

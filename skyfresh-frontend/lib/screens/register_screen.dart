@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:skyfresh/ApiService.dart';
+import 'package:skyfresh/api_service.dart';
 import 'package:skyfresh/theme.dart';
 import 'otp_screen.dart';
 import 'login_screen.dart';
@@ -57,7 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.darkBg,
+      backgroundColor: AppTheme.bg,
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -68,9 +68,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 decoration: const BoxDecoration(
                   color: AppTheme.surface,
                   borderRadius: BorderRadius.vertical(bottom: Radius.circular(40)),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black26, blurRadius: 20, offset: Offset(0, 10))
-                  ]
                 ),
                 padding: const EdgeInsets.fromLTRB(24, 64, 24, 36),
                 child: Stack(
@@ -79,13 +76,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 8),
-                        const Text('Create\nAccount.',
-                          style: TextStyle(fontSize: 48, fontWeight: FontWeight.w800, height: 1.1,
-                              letterSpacing: -1.5, color: AppTheme.textMain)),
+                        const Text('Create Account',
+                          style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900, height: 1.1,
+                              letterSpacing: -1.2, color: AppTheme.textMain)),
                         const SizedBox(height: 12),
-                        const Text('Fresh fruits & juices at your door 🌿',
+                        const Text('Sign up to order fresh groceries delivered fast.',
                           style: TextStyle(color: AppTheme.textMuted, fontSize: 15,
-                              fontWeight: FontWeight.w500)),
+                              fontWeight: FontWeight.w500, height: 1.5)),
                       ],
                     ),
                     Positioned(

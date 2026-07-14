@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:skyfresh/ApiService.dart';
+import 'package:skyfresh/api_service.dart';
 import 'package:skyfresh/theme.dart';
 import 'login_screen.dart';
 import 'home_screen.dart';
@@ -49,35 +49,33 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.darkBg,
+      backgroundColor: AppTheme.bg,
       body: Stack(
         children: [
-          // Ambient Glow
           Positioned(
-            top: -100, right: -100,
+            top: -120, right: -120,
             child: Container(
-              width: 300, height: 300,
+              width: 280, height: 280,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [AppTheme.primaryDark.withOpacity(0.4), Colors.transparent],
+                  colors: [AppTheme.primary.withOpacity(0.22), Colors.transparent],
                 ),
               ),
             ),
           ),
           Positioned(
-            bottom: -150, left: -100,
+            bottom: -140, left: -110,
             child: Container(
-              width: 400, height: 400,
+              width: 340, height: 340,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [AppTheme.primary.withOpacity(0.2), Colors.transparent],
+                  colors: [AppTheme.primaryLight.withOpacity(0.22), Colors.transparent],
                 ),
               ),
             ),
           ),
-          
           Center(
             child: FadeTransition(
               opacity: _fade,
@@ -87,49 +85,45 @@ class _SplashScreenState extends State<SplashScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 110, height: 110,
+                      width: 120, height: 120,
                       decoration: BoxDecoration(
-                        gradient: AppTheme.glassGradient,
-                        borderRadius: BorderRadius.circular(35),
-                        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1.5),
+                        color: AppTheme.surface,
+                        borderRadius: BorderRadius.circular(34),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 30, offset: const Offset(0, 15)
-                          )
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 30,
+                            offset: const Offset(0, 16),
+                          ),
                         ],
                       ),
                       child: const Center(
-                        child: Text('🌿', style: TextStyle(fontSize: 54)),
+                        child: Text('🌿', style: TextStyle(fontSize: 56)),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 28),
                     RichText(
+                      textAlign: TextAlign.center,
                       text: const TextSpan(
-                        style: TextStyle(fontSize: 42, fontWeight: FontWeight.w800,
-                            letterSpacing: -1, color: AppTheme.textMain),
+                        style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900,
+                            letterSpacing: -1.5, color: AppTheme.textMain),
                         children: [
-                          TextSpan(text: 'SKY', style: TextStyle(color: Colors.white54)),
-                          TextSpan(text: 'fresh', style: TextStyle(color: AppTheme.primaryLight)),
+                          TextSpan(text: 'SKY', style: TextStyle(color: AppTheme.primaryDark)),
+                          TextSpan(text: 'fresh', style: TextStyle(color: AppTheme.primary)),
                         ],
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceLight.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppTheme.border),
-                      ),
-                      child: const Text('FARM FRESH  ·  SKY CLEAN',
-                        style: TextStyle(fontSize: 10, color: AppTheme.textMuted,
-                            letterSpacing: 4, fontWeight: FontWeight.w700)),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 32),
+                      child: Text('Fresh groceries delivered in minutes, with a premium app experience.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 15, color: AppTheme.textMuted, height: 1.6)),
                     ),
-                    const SizedBox(height: 60),
-                    const SizedBox(
-                      width: 28, height: 28,
-                      child: CircularProgressIndicator(color: AppTheme.primary, strokeWidth: 2.5),
+                    const SizedBox(height: 54),
+                    Container(
+                      width: 34, height: 34,
+                      child: const CircularProgressIndicator(color: AppTheme.primary, strokeWidth: 3),
                     ),
                   ],
                 ),

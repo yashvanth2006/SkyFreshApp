@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:skyfresh/theme.dart';
 
 class _Brand {
-  static const Color dark = Color(0xFF0F172A);
+  static const Color dark = AppTheme.textMain;
   static const Color primaryDark = Color(0xFF15803D);
   static const Color primaryLight = Color(0xFF22C55E);
   static const Color muted = Color(0xFF64748B);
@@ -81,7 +82,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _Brand.bg,
+      backgroundColor: AppTheme.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -168,7 +169,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
                               border: n['unread'] == true
-                                ? Border.all(color: const Color(0xFFBBF7D0), width: 1.4)
+                                ? Border.all(color: AppTheme.primaryLight.withOpacity(0.8), width: 1.4)
                                 : null,
                               boxShadow: [BoxShadow(
                                 color: Colors.black.withOpacity(0.05),

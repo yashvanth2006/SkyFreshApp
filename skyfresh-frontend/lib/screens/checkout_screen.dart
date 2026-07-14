@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skyfresh/cart_provider.dart';
 import 'package:skyfresh/theme.dart';
-import 'package:skyfresh/ApiService.dart';
+import 'package:skyfresh/api_service.dart';
 import 'package:skyfresh/screens/order_success_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -108,7 +108,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(steps.length, (i) {
-        final isActive = i <= 1; // Address step active
+        final isActive = i <= 1;
         return Expanded(
           child: Column(
             children: [
@@ -116,12 +116,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 width: 36, height: 36,
                 decoration: BoxDecoration(
                   color: isActive ? AppTheme.primary : AppTheme.surfaceLight,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Center(child: Text('${i + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800))),
+                child: Center(
+                  child: Text(
+                    '${i + 1}',
+                    style: TextStyle(
+                      color: isActive ? Colors.white : AppTheme.textMuted,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 8),
-                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Subtotal', style: TextStyle(color: AppTheme.textMuted)), Text('₹${widget.subtotal}'),]),
+              Text(
+                steps[i],
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isActive ? AppTheme.textMain : AppTheme.textMuted,
+                ),
+              ),
             ],
           ),
         );
@@ -133,7 +149,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
     return Scaffold(
-      backgroundColor: AppTheme.darkBg,
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
         backgroundColor: AppTheme.surface,
         elevation: 0,
@@ -274,7 +290,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     )),
                     const SizedBox(height: 12),
-                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Subtotal', style: TextStyle(color: AppTheme.textMuted)), Text('₹${""}'),]),
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Subtotal', style: TextStyle(color: AppTheme.textMuted)), Text('₹${widget.subtotal}')]),
                     const SizedBox(height: 6),
                     Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Delivery Charge', style: TextStyle(color: AppTheme.textMuted)), Text(widget.deliveryFee == 0 ? 'FREE' : '₹${widget.deliveryFee}')]),
                     const SizedBox(height: 10),

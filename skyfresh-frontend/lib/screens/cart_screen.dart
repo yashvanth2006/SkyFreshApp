@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skyfresh/cart_provider.dart';
-import 'package:skyfresh/ApiService.dart';
 import 'package:skyfresh/screens/checkout_screen.dart';
 import 'package:skyfresh/theme.dart';
 
@@ -15,7 +14,6 @@ class _CartScreenState extends State<CartScreen> {
   bool _placingOrder = false;
 
   Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, int grandTotal) async {
-    // Navigate to Checkout screen to collect address/payment
     if (!mounted) return;
     await Navigator.push(
       context,
@@ -29,110 +27,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Future<String?> _askForAddress() {
-    final ctrl = TextEditingController();
-    return showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: const BorderSide(color: AppTheme.border)),
-        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Delivery Address',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3, color: AppTheme.textMain)),
-            const SizedBox(height: 4),
-            const Text('Where should we deliver your order?',
-              style: TextStyle(fontSize: 13, color: AppTheme.textMuted)),
-            const SizedBox(height: 20),
-            TextField(
-              controller: ctrl,
-              maxLines: 3,
-              autofocus: true,
-              style: const TextStyle(color: AppTheme.textMain, fontSize: 14),
-              decoration: InputDecoration(
-                hintText: 'House no, street, area, city, pincode',
-                hintStyle: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
-                filled: true,
-                fillColor: AppTheme.surfaceLight,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppTheme.border)),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppTheme.border)),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppTheme.primary, width: 2)),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(dialogContext, null),
-                    child: const Text('Cancel',
-                      style: TextStyle(color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(dialogContext, ctrl.text),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      elevation: 0,
-                    ),
-                    child: const Text('Continue',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _placeOrder(CartProvider cart, int subtotal, int deliveryFee,
-      int grandTotal, String address) async {
-    setState(() => _placingOrder = true);
-
-    final items = cart.items.map((i) => {
-      'name': i.name,
-      'price': i.priceInt,
-      'quantity': i.quantity,
-      'unit': i.unit,
-      'emoji': i.emoji,
-    }).toList();
-
-    final result = await ApiService.placeOrder(
-      items: items,
-      subtotal: subtotal,
-      deliveryFee: deliveryFee,
-      total: grandTotal,
-      address: address,
-    );
-
-    setState(() => _placingOrder = false);
-    if (!mounted) return;
-
-    if (result['success'] == true) {
-      _showOrderConfirmation(cart, grandTotal);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.redAccent,
-        content: Text(result['message'] ?? 'Could not place order', style: const TextStyle(color: Colors.white))));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
@@ -140,7 +34,7 @@ class _CartScreenState extends State<CartScreen> {
     final grandTotal = cart.totalPrice + deliveryFee;
 
     return Scaffold(
-      backgroundColor: AppTheme.darkBg,
+      backgroundColor: AppTheme.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -397,57 +291,6 @@ class _CartScreenState extends State<CartScreen> {
         Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700,
             color: valueColor)),
       ],
-    );
-  }
-
-  void _showOrderConfirmation(CartProvider cart, int grandTotal) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: const BorderSide(color: AppTheme.border)),
-        contentPadding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 80, height: 80,
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceLight,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppTheme.primary, width: 2)
-              ),
-              child: const Center(child: Text('🎉', style: TextStyle(fontSize: 40))),
-            ),
-            const SizedBox(height: 24),
-            const Text('Order Placed!',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3, color: AppTheme.textMain)),
-            const SizedBox(height: 8),
-            Text('Your order of ₹$grandTotal has been placed.\nWe\'ll deliver fresh to your door 🌿',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppTheme.textMuted, fontSize: 14, height: 1.4)),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () {
-                  cart.clear();
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
-                ),
-                child: const Text('Done',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

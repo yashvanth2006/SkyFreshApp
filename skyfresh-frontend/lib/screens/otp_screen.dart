@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'package:skyfresh/ApiService.dart';
+import 'package:skyfresh/api_service.dart';
 import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/screens/home_screen.dart';
 
@@ -54,7 +54,7 @@ class _OtpScreenState extends State<OtpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.darkBg,
+      backgroundColor: AppTheme.bg,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -63,9 +63,6 @@ class _OtpScreenState extends State<OtpScreen> {
               decoration: const BoxDecoration(
                 color: AppTheme.surface,
                 borderRadius: BorderRadius.vertical(bottom: Radius.circular(40)),
-                boxShadow: [
-                  BoxShadow(color: Colors.black26, blurRadius: 20, offset: Offset(0, 10))
-                ]
               ),
               padding: const EdgeInsets.fromLTRB(24, 74, 24, 40),
               child: Column(
@@ -89,13 +86,13 @@ class _OtpScreenState extends State<OtpScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Text('Verify\nNumber.',
-                    style: TextStyle(fontSize: 48, fontWeight: FontWeight.w800, height: 1.1,
-                        letterSpacing: -1.5, color: AppTheme.textMain)),
+                  const Text('Verify Number',
+                    style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900, height: 1.1,
+                        letterSpacing: -1.2, color: AppTheme.textMain)),
                   const SizedBox(height: 12),
                   Text('Code sent to ${widget.phone}',
                     style: const TextStyle(color: AppTheme.textMuted, fontSize: 15,
-                        fontWeight: FontWeight.w500)),
+                        fontWeight: FontWeight.w500, height: 1.6)),
                 ],
               ),
             ),

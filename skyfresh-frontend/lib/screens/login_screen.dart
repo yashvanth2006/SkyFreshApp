@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:skyfresh/ApiService.dart';
+import 'package:skyfresh/api_service.dart';
 import 'package:skyfresh/theme.dart';
 import 'register_screen.dart';
 import 'package:skyfresh/screens/home_screen.dart';
@@ -55,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.darkBg,
+      backgroundColor: AppTheme.bg,
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -66,9 +66,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 decoration: const BoxDecoration(
                   color: AppTheme.surface,
                   borderRadius: BorderRadius.vertical(bottom: Radius.circular(40)),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black26, blurRadius: 20, offset: Offset(0, 10))
-                  ]
                 ),
                 padding: const EdgeInsets.fromLTRB(24, 74, 24, 40),
                 child: Column(
@@ -93,13 +90,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Text('Welcome\nBack.',
-                      style: TextStyle(fontSize: 48, fontWeight: FontWeight.w800, height: 1.1,
-                          letterSpacing: -1.5, color: AppTheme.textMain)),
-                    const SizedBox(height: 12),
-                    const Text('Enter your credentials to continue',
+                    const Text('Welcome back',
+                      style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900, height: 1.1,
+                          letterSpacing: -1.2, color: AppTheme.textMain)),
+                    const SizedBox(height: 10),
+                    const Text('Shop premium groceries with instant delivery and smart savings.',
                       style: TextStyle(color: AppTheme.textMuted, fontSize: 15,
-                          fontWeight: FontWeight.w500)),
+                          fontWeight: FontWeight.w500, height: 1.5)),
                   ],
                 ),
               ),

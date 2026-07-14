@@ -127,4 +127,40 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// ── CURRENT USER PROFILE
+router.get('/me', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, message: 'No token provided' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+    }
+
+    const user = await User.findById(decoded.id).select('name phone createdAt');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        phone: user.phone,
+        joinedAt: user.createdAt,
+      }
+    });
+
+  } catch (err) {
+    res.json({ success: false, message: 'Server error', error: err.message });
+  }
+});
+
 module.exports = router;

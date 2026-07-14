@@ -8,7 +8,7 @@ class OrderSuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.darkBg,
+      backgroundColor: AppTheme.bg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),

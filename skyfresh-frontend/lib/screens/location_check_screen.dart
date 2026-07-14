@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:skyfresh/theme.dart';
-import 'package:skyfresh/ApiService.dart';
+import 'package:skyfresh/api_service.dart';
 
 
 class LocationCheckScreen extends StatefulWidget {
@@ -14,7 +14,6 @@ class LocationCheckScreen extends StatefulWidget {
 
 class _LocationCheckScreenState extends State<LocationCheckScreen> {
   bool _isLoading = true;
-  bool _isServiceable = false;
   String _message = 'Checking delivery serviceability in your area...';
   String _address = '';
 
@@ -88,7 +87,6 @@ class _LocationCheckScreenState extends State<LocationCheckScreen> {
       } else {
         setState(() {
           _isLoading = false;
-          _isServiceable = false;
           _message = res['message'] ?? 'Sorry, we do not deliver to this location yet.';
         });
       }
@@ -103,9 +101,9 @@ class _LocationCheckScreenState extends State<LocationCheckScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.bg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.surface,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),

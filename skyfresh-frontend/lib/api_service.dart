@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:skyfresh/models/user_profile.dart';
 
 class ApiService {
   static const String baseUrl = "http://localhost:5000/api";
@@ -162,6 +163,33 @@ class ApiService {
       return [];
     } catch (e) {
       return [];
+    }
+  }
+
+  // ── GET PROFILE
+  static Future<UserProfile?> getProfile() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null || token.isEmpty) return null;
+
+      final res = await http.get(
+        Uri.parse('$baseUrl/auth/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      final data = jsonDecode(res.body);
+      if (data['success'] == true && data['user'] != null) {
+        final profile = UserProfile.fromJson(Map<String, dynamic>.from(data['user']));
+        await prefs.setString('userName', profile.name);
+        await prefs.setString('userPhone', profile.phone);
+        return profile;
+      }
+      return null;
+    } catch (e) {
+      return null;
     }
   }
 
