@@ -8,12 +8,11 @@ import 'package:skyfresh/models/user_profile.dart';
 import 'package:skyfresh/screens/profile_screen.dart';
 import 'package:skyfresh/screens/my_orders_screen.dart';
 import 'package:skyfresh/screens/my_addresses_screen.dart';
-import 'package:skyfresh/screens/my_reviews_screen.dart';
 import 'package:skyfresh/screens/help_support_screen.dart';
 import 'package:skyfresh/screens/login_screen.dart';
+import 'package:skyfresh/screens/ai_screen.dart';
 import 'cart_screen.dart';
 import 'notifications_screen.dart';
-import 'reviews_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -151,92 +150,162 @@ class _HomeScreenState extends State<HomeScreen> {
     final List<Widget> screens = [
       _buildHome(context, cart),
       const CartScreen(),
+      const AiScreen(),
       const NotificationsScreen(),
-      const ReviewsScreen(),
       _buildProfile(),
     ];
 
     return Scaffold(
       backgroundColor: AppTheme.bg,
       body: screens[_currentTab],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.surface,
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 20, offset: const Offset(0, -4))
-          ],
-        ),
-        child: SafeArea(
-          top: false,
-          child: BottomNavigationBar(
-            currentIndex: _currentTab,
-            onTap: (i) {
-              setState(() => _currentTab = i);
-              if (i == 4) _loadProfile();
-            },
-            selectedItemColor: AppTheme.primary,
-            unselectedItemColor: AppTheme.textMuted,
-            showUnselectedLabels: true,
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
-            unselectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
-            items: [
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.home_rounded), label: 'Home'),
-              BottomNavigationBarItem(
-                icon: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const Icon(Icons.shopping_bag_rounded),
-                    if (cart.totalItems > 0)
-                      Positioned(
-                        right: -6, top: -4,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primary,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppTheme.surface, width: 1.5),
-                          ),
-                          child: Text('${cart.totalItems}',
-                            style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800)),
-                        ),
-                      ),
-                  ],
-                ),
+      bottomNavigationBar: _buildBottomNav(cart),
+    );
+  }
+
+  Widget _buildBottomNav(CartProvider cart) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, -4)),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 64,
+          child: Row(
+            children: [
+              _bottomNavItem(icon: Icons.home_rounded, label: 'Home', index: 0),
+              _bottomNavItem(
+                icon: Icons.shopping_bag_rounded,
                 label: 'Cart',
+                index: 1,
+                badge: cart.totalItems > 0 ? '${cart.totalItems}' : null,
               ),
-              BottomNavigationBarItem(
-                icon: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const Icon(Icons.notifications_rounded),
-                    if (_notifCount > 0)
-                      Positioned(
-                        right: -6, top: -4,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primary,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppTheme.surface, width: 1.5),
-                          ),
-                          child: Text('$_notifCount',
-                            style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800)),
-                        ),
-                      ),
-                  ],
-                ),
+              _bottomNavAiItem(),
+              _bottomNavItem(
+                icon: Icons.notifications_rounded,
                 label: 'Alerts',
+                index: 3,
+                badge: _notifCount > 0 ? '$_notifCount' : null,
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.star_rounded), label: 'Reviews'),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.person_rounded), label: 'Profile'),
+              _bottomNavItem(icon: Icons.person_rounded, label: 'Profile', index: 4),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _onTabTap(int index) {
+    setState(() => _currentTab = index);
+    if (index == 4) _loadProfile();
+  }
+
+  Widget _bottomNavItem({
+    required IconData icon,
+    required String label,
+    required int index,
+    String? badge,
+  }) {
+    final selected = _currentTab == index;
+    final color = selected ? AppTheme.primary : AppTheme.textMuted;
+
+    return Expanded(
+      child: InkWell(
+        onTap: () => _onTabTap(index),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(icon, color: color, size: 24),
+                if (badge != null)
+                  Positioned(
+                    right: -8,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.surface, width: 1.5),
+                      ),
+                      child: Text(
+                        badge,
+                        style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _bottomNavAiItem() {
+    final selected = _currentTab == 2;
+
+    return Expanded(
+      child: InkWell(
+        onTap: () => _onTabTap(2),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Transform.translate(
+              offset: const Offset(0, -8),
+              child: Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  gradient: selected ? AppTheme.greenGradient : const LinearGradient(
+                    colors: [AppTheme.primaryDark, AppTheme.primary],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primary.withOpacity(selected ? 0.45 : 0.3),
+                      blurRadius: selected ? 16 : 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: selected ? Colors.white : Colors.white.withOpacity(0.5),
+                    width: 2,
+                  ),
+                ),
+                child: Icon(
+                  Icons.auto_awesome_rounded,
+                  color: Colors.white,
+                  size: selected ? 26 : 24,
+                ),
+              ),
+            ),
+            const SizedBox(height: -2),
+            Text(
+              'AI',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: selected ? AppTheme.primaryDark : AppTheme.primary,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -493,7 +562,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final name = _profile?.name ?? _userName;
     final phone = _profile?.phone ?? '';
     final orderCount = _profile?.orderCount ?? 0;
-    final reviewCount = _profile?.reviewCount ?? 0;
     final addressCount = _profile?.addresses.length ?? 0;
 
     return RefreshIndicator(
@@ -570,8 +638,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         _ProfileQuickStat(label: 'Orders', value: '$orderCount'),
                         const SizedBox(width: 10),
-                        _ProfileQuickStat(label: 'Reviews', value: '$reviewCount'),
-                        const SizedBox(width: 10),
                         _ProfileQuickStat(label: 'Addresses', value: '$addressCount'),
                       ],
                     ),
@@ -597,12 +663,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: _openAddresses,
                 ),
                 _profileTile(
-                  Icons.star_rounded,
-                  'My Reviews',
-                  subtitle: reviewCount == 0 ? 'Share your experience' : '$reviewCount review${reviewCount == 1 ? '' : 's'}',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyReviewsScreen())),
-                ),
-                  _profileTile(
                   Icons.help_outline_rounded,
                   'Help & Support',
                   subtitle: 'Store info, FAQs & contact',

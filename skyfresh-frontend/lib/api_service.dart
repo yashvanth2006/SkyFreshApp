@@ -264,80 +264,6 @@ class ApiService {
     }
   }
 
-  // ── GET REVIEWS (PUBLIC)
-  static Future<List<Map<String, dynamic>>> getReviews() async {
-    try {
-      final res = await http.get(
-        Uri.parse('$baseUrl/reviews'),
-        headers: {'Content-Type': 'application/json'},
-      );
-      final data = jsonDecode(res.body);
-      if (data['success'] == true) {
-        return List<Map<String, dynamic>>.from(data['reviews']);
-      }
-      return [];
-    } catch (e) {
-      return [];
-    }
-  }
-
-  // ── GET MY REVIEWS
-  static Future<List<Map<String, dynamic>>> getMyReviews() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null || token.isEmpty) return [];
-
-      final res = await http.get(
-        Uri.parse('$baseUrl/reviews/my'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-      final data = jsonDecode(res.body);
-      if (data['success'] == true) {
-        return List<Map<String, dynamic>>.from(data['reviews']);
-      }
-      return [];
-    } catch (e) {
-      return [];
-    }
-  }
-
-  // ── SUBMIT REVIEW
-  static Future<Map<String, dynamic>> submitReview({
-    required String productName,
-    required int rating,
-    required String comment,
-    String? productId,
-  }) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null || token.isEmpty) {
-        return {'success': false, 'message': 'Please log in again.'};
-      }
-
-      final res = await http.post(
-        Uri.parse('$baseUrl/reviews'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'productName': productName,
-          'rating': rating,
-          'comment': comment,
-          if (productId != null) 'productId': productId,
-        }),
-      );
-      return jsonDecode(res.body);
-    } catch (e) {
-      return {'success': false, 'message': 'Cannot connect to server.'};
-    }
-  }
-
   // ── CHECK SERVICEABILITY
   static Future<Map<String, dynamic>> checkServiceability({
     required double lat,
@@ -366,4 +292,5 @@ class ApiService {
     final token = prefs.getString('token');
     return token != null && token.isNotEmpty;
   }
+}
 }

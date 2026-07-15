@@ -128,8 +128,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       _ProfileStat(label: 'Orders', value: '${_user.orderCount}'),
                       const SizedBox(width: 12),
-                      _ProfileStat(label: 'Reviews', value: '${_user.reviewCount}'),
-                      const SizedBox(width: 12),
                       _ProfileStat(label: 'Joined', value: _user.formattedJoinDate, compact: true),
                     ],
                   ),

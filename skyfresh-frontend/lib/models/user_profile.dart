@@ -28,7 +28,6 @@ class UserProfile {
   final DateTime joinedAt;
   final List<UserAddress> addresses;
   final int orderCount;
-  final int reviewCount;
 
   UserProfile({
     required this.id,
@@ -37,7 +36,6 @@ class UserProfile {
     required this.joinedAt,
     this.addresses = const [],
     this.orderCount = 0,
-    this.reviewCount = 0,
   });
 
   String? get defaultAddress {
@@ -70,7 +68,6 @@ class UserProfile {
               .toList()
           : const [],
       orderCount: json['orderCount'] as int? ?? 0,
-      reviewCount: json['reviewCount'] as int? ?? 0,
     );
   }
 }
