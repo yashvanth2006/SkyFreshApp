@@ -73,7 +73,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'name': i.name,
       'price': i.priceInt,
       'quantity': i.quantity,
-      'unit': i.unit,
+      'unit': i.weight,
       'emoji': i.emoji,
     }).toList();
 
@@ -283,7 +283,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             child: Center(child: Text(i.emoji, style: const TextStyle(fontSize: 20))),
                           ),
                           const SizedBox(width: 12),
-                          Expanded(child: Text(i.name, style: const TextStyle(fontWeight: FontWeight.w700))),
+                          Expanded(child: Text('${i.name} (${i.weight})', style: const TextStyle(fontWeight: FontWeight.w700))),
                           Text('x${i.quantity}  ', style: const TextStyle(color: AppTheme.textMuted)),
                           Text('₹${i.total}', style: const TextStyle(fontWeight: FontWeight.w800)),
                         ],

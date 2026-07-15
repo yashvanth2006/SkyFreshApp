@@ -127,8 +127,8 @@ class _HomeScreenState extends State<HomeScreen> {
       isScrollControlled: true,
       builder: (_) => _ProductDetailSheet(
         product: product,
-        onAdd: () {
-          cart.addItem(product);
+        onAdd: (weight) {
+          cart.addItem(product, weight: weight);
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -296,7 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: -2),
+            const SizedBox(height: 0),
             Text(
               'AI',
               style: TextStyle(
@@ -513,7 +513,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       childCount: 4,
                     ),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2, crossAxisSpacing: 16, mainAxisSpacing: 16, childAspectRatio: 0.75,
+                      crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.68,
                     ),
                   ),
                 )
@@ -548,7 +548,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         childCount: _filtered.length,
                       ),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, crossAxisSpacing: 16, mainAxisSpacing: 16, childAspectRatio: 0.75,
+                        crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.68,
                       ),
                     ),
                   ),
@@ -577,7 +577,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: AppTheme.surface,
                 borderRadius: BorderRadius.vertical(bottom: Radius.circular(36)),
               ),
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 36),
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
               child: Column(
                 children: [
                   Container(
@@ -632,16 +632,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: const Text('SKYfresh Premium Member', style: TextStyle(color: AppTheme.primaryDark, fontSize: 13, fontWeight: FontWeight.w700)),
                   ),
-                  if (_profile != null && !_profileLoading) ...[
-                    const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        _ProfileQuickStat(label: 'Orders', value: '$orderCount'),
-                        const SizedBox(width: 10),
-                        _ProfileQuickStat(label: 'Addresses', value: '$addressCount'),
-                      ],
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -879,21 +869,21 @@ class _ProductCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(product['name'],
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.textMain),
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
                       maxLines: 1, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 2),
                     Text(product['unit'],
-                      style: const TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 8),
+                      style: const TextStyle(fontSize: 10, color: Colors.white70, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 5),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(product['price'],
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.primaryLight)),
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.primaryLight)),
                         GestureDetector(
                           onTap: onAdd,
                           child: Container(
-                            width: 32, height: 32,
+                            width: 26, height: 26,
                             decoration: BoxDecoration(
                               color: AppTheme.primary,
                               borderRadius: BorderRadius.circular(10),
@@ -946,13 +936,22 @@ class _ProductSkeletonState extends State<_ProductSkeleton>
   }
 }
 
-class _ProductDetailSheet extends StatelessWidget {
+class _ProductDetailSheet extends StatefulWidget {
   final Map<String, dynamic> product;
-  final VoidCallback onAdd;
+  final ValueChanged<String> onAdd;
   const _ProductDetailSheet({required this.product, required this.onAdd});
 
   @override
+  State<_ProductDetailSheet> createState() => _ProductDetailSheetState();
+}
+
+class _ProductDetailSheetState extends State<_ProductDetailSheet> {
+  String _weight = '250g';
+
+  @override
   Widget build(BuildContext context) {
+    final product = widget.product;
+    final supportsWeight = product['category'] == 'Fruits';
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
       decoration: const BoxDecoration(
@@ -1001,9 +1000,31 @@ class _ProductDetailSheet extends StatelessWidget {
                 style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppTheme.primaryLight)),
             ],
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
+          if (supportsWeight) ...[
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Choose quantity', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.textMain)),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: ['250g', '500g', '750g', '1kg'].map((weight) {
+                final selected = _weight == weight;
+                return ChoiceChip(
+                  label: Text(weight),
+                  selected: selected,
+                  onSelected: (_) => setState(() => _weight = weight),
+                  selectedColor: AppTheme.primary.withOpacity(0.18),
+                  labelStyle: TextStyle(color: selected ? AppTheme.primaryDark : AppTheme.textMuted, fontWeight: FontWeight.w700),
+                  side: BorderSide(color: selected ? AppTheme.primary : AppTheme.border),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 24),
+          ],
           GestureDetector(
-            onTap: onAdd,
+            onTap: () => widget.onAdd(supportsWeight ? _weight : product['unit'].toString()),
             child: Container(
               width: double.infinity, height: 60,
               decoration: BoxDecoration(
@@ -1013,8 +1034,8 @@ class _ProductDetailSheet extends StatelessWidget {
                   BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))
                 ],
               ),
-              child: const Center(
-                child: Text('Add to Cart',
+              child: Center(
+                child: Text(supportsWeight ? 'Add $_weight to Cart' : 'Add to Cart',
                     style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800)),
               ),
             ),
