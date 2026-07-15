@@ -602,10 +602,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: reviewCount == 0 ? 'Share your experience' : '$reviewCount review${reviewCount == 1 ? '' : 's'}',
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyReviewsScreen())),
                 ),
-                _profileTile(
+                  _profileTile(
                   Icons.help_outline_rounded,
                   'Help & Support',
-                  subtitle: 'FAQs and contact support',
+                  subtitle: 'Store info, FAQs & contact',
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpSupportScreen())),
                 ),
                 _profileTile(
