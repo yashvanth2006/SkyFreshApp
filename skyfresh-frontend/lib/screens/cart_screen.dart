@@ -99,10 +99,10 @@ class _CartScreenState extends State<CartScreen> {
                     itemBuilder: (_, i) {
                       final item = cart.items[i];
                       return Dismissible(
-                        key: ValueKey(item.name),
+                        key: ValueKey('${item.name}-${item.weight}'),
                         direction: DismissDirection.endToStart,
                         onDismissed: (_) => context.read<CartProvider>()
-                            .removeItem(item.name),
+                            .removeItem(item.name, item.weight),
                         background: Container(
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.only(right: 20),
@@ -146,7 +146,7 @@ class _CartScreenState extends State<CartScreen> {
                                           letterSpacing: -0.2,
                                           color: AppTheme.textMain)),
                                     const SizedBox(height: 2),
-                                    Text(item.unit,
+                                    Text(item.weight,
                                       style: const TextStyle(fontSize: 12,
                                           color: AppTheme.textMuted, fontWeight: FontWeight.w500)),
                                     const SizedBox(height: 4),
@@ -170,7 +170,7 @@ class _CartScreenState extends State<CartScreen> {
                                     _QtyBtn(
                                       icon: Icons.remove_rounded,
                                       onTap: () => context.read<CartProvider>()
-                                          .decrement(item.name),
+                                          .decrement(item.name, item.weight),
                                     ),
                                     SizedBox(
                                       width: 32,
@@ -182,7 +182,7 @@ class _CartScreenState extends State<CartScreen> {
                                     _QtyBtn(
                                       icon: Icons.add_rounded,
                                       onTap: () => context.read<CartProvider>()
-                                          .increment(item.name),
+                                          .increment(item.name, item.weight),
                                     ),
                                   ],
                                 ),

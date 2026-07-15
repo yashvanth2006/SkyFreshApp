@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:skyfresh/cart_provider.dart';
 import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/api_service.dart';
+import 'package:skyfresh/models/user_profile.dart';
 import 'package:skyfresh/screens/order_success_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -29,7 +30,31 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _countryCtrl = TextEditingController(text: 'India');
 
   bool _placing = false;
+  bool _addressesLoading = true;
+  List<UserAddress> _savedAddresses = const [];
+  UserAddress? _selectedAddress;
   String _paymentMethod = 'COD';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedAddresses();
+  }
+
+  Future<void> _loadSavedAddresses() async {
+    final profile = await ApiService.getProfile();
+    if (!mounted) return;
+    setState(() {
+      _savedAddresses = profile?.addresses ?? const [];
+      _selectedAddress = _savedAddresses.isEmpty
+          ? null
+          : _savedAddresses.firstWhere(
+              (address) => address.isDefault,
+              orElse: () => _savedAddresses.first,
+            );
+      _addressesLoading = false;
+    });
+  }
 
   @override
   void dispose() {
@@ -60,7 +85,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _placeOrder() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_savedAddresses.isEmpty && !_formKey.currentState!.validate()) return;
     final cart = context.read<CartProvider>();
     if (cart.items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cart is empty')));
@@ -73,11 +98,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       'name': i.name,
       'price': i.priceInt,
       'quantity': i.quantity,
-      'unit': i.unit,
+      'unit': i.weight,
       'emoji': i.emoji,
     }).toList();
 
-    final address = _buildAddress();
+    final address = _selectedAddress?.line ?? _buildAddress();
 
     final res = await ApiService.placeOrder(
       items: items,
@@ -145,6 +170,49 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  Widget _deliveryAddressSection() {
+    if (_addressesLoading) {
+      return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
+    }
+    if (_savedAddresses.isEmpty) {
+      return Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Delivery Address', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textMain)),
+            const SizedBox(height: 12),
+            TextFormField(controller: _nameCtrl, decoration: const InputDecoration(labelText: 'Full Name *'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter full name' : null),
+            const SizedBox(height: 8),
+            TextFormField(controller: _phoneCtrl, decoration: const InputDecoration(labelText: 'Mobile Number *'), keyboardType: TextInputType.phone, validator: (v) => (v == null || v.trim().replaceAll(RegExp(r'[^0-9]'), '').length < 10) ? 'Enter valid phone number' : null),
+            const SizedBox(height: 8),
+            TextFormField(controller: _houseCtrl, decoration: const InputDecoration(labelText: 'House / Flat Number *'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter house/flat number' : null),
+            const SizedBox(height: 8),
+            TextFormField(controller: _streetCtrl, decoration: const InputDecoration(labelText: 'Street / Area *'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter street/area' : null),
+            const SizedBox(height: 8),
+            TextFormField(controller: _cityCtrl, decoration: const InputDecoration(labelText: 'City *'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter city' : null),
+            const SizedBox(height: 8),
+            TextFormField(controller: _stateCtrl, decoration: const InputDecoration(labelText: 'State *'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter state' : null),
+            const SizedBox(height: 8),
+            TextFormField(controller: _pinCtrl, decoration: const InputDecoration(labelText: 'Pincode *'), keyboardType: TextInputType.number, validator: (v) => (v == null || !RegExp(r'^\d+$').hasMatch(v.trim())) ? 'Enter numeric pincode' : null),
+          ],
+        ),
+      );
+    }
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('Select saved address', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textMain)),
+      const SizedBox(height: 8),
+      ..._savedAddresses.map((address) => RadioListTile<UserAddress>(
+        value: address,
+        groupValue: _selectedAddress,
+        onChanged: (value) => setState(() => _selectedAddress = value),
+        contentPadding: EdgeInsets.zero,
+        title: Text(address.label, style: const TextStyle(fontWeight: FontWeight.w700)),
+        subtitle: Text(address.line),
+      )),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
@@ -172,90 +240,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: AppTheme.border),
                 ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Delivery Address', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textMain)),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _nameCtrl,
-                        decoration: const InputDecoration(labelText: 'Full Name *'),
-                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter full name' : null,
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _phoneCtrl,
-                        decoration: const InputDecoration(labelText: 'Mobile Number *'),
-                        keyboardType: TextInputType.phone,
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Enter mobile number';
-                          final cleaned = v.replaceAll(RegExp(r'[^0-9]'), '');
-                          if (cleaned.length < 10) return 'Enter valid phone number';
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _altPhoneCtrl,
-                        decoration: const InputDecoration(labelText: 'Alternate Mobile Number (optional)'),
-                        keyboardType: TextInputType.phone,
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) return null;
-                          final cleaned = v.replaceAll(RegExp(r'[^0-9]'), '');
-                          if (cleaned.length < 10) return 'Enter valid phone number';
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _houseCtrl,
-                        decoration: const InputDecoration(labelText: 'House / Flat Number *'),
-                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter house/flat number' : null,
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _streetCtrl,
-                        decoration: const InputDecoration(labelText: 'Street / Area *'),
-                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter street/area' : null,
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _landmarkCtrl,
-                        decoration: const InputDecoration(labelText: 'Landmark (optional)'),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _cityCtrl,
-                        decoration: const InputDecoration(labelText: 'City *'),
-                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter city' : null,
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _stateCtrl,
-                        decoration: const InputDecoration(labelText: 'State *'),
-                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter state' : null,
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _pinCtrl,
-                        decoration: const InputDecoration(labelText: 'Pincode *'),
-                        keyboardType: TextInputType.number,
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Enter pincode';
-                            if (!RegExp(r'^\d+$').hasMatch(v.trim())) return 'Pincode should be numeric';
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _countryCtrl,
-                        decoration: const InputDecoration(labelText: 'Country'),
-                      ),
-                    ],
-                  ),
-                ),
+                child: _deliveryAddressSection(),
               ),
 
               const SizedBox(height: 16),
@@ -283,7 +268,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             child: Center(child: Text(i.emoji, style: const TextStyle(fontSize: 20))),
                           ),
                           const SizedBox(width: 12),
-                          Expanded(child: Text(i.name, style: const TextStyle(fontWeight: FontWeight.w700))),
+                          Expanded(child: Text('${i.name} (${i.weight})', style: const TextStyle(fontWeight: FontWeight.w700))),
                           Text('x${i.quantity}  ', style: const TextStyle(color: AppTheme.textMuted)),
                           Text('₹${i.total}', style: const TextStyle(fontWeight: FontWeight.w800)),
                         ],

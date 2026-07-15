@@ -57,13 +57,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               pinned: true,
               backgroundColor: AppTheme.primaryDark,
               foregroundColor: Colors.white,
-              flexibleSpace: FlexibleSpaceBar(
-                title: const Text('My Profile', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
-                background: Container(
+              title: const Text('My Profile', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+              flexibleSpace: Container(
                   decoration: const BoxDecoration(gradient: AppTheme.greenGradient),
                   child: SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 56, 20, 20),
+                      padding: const EdgeInsets.fromLTRB(20, 76, 20, 20),
                       child: Row(
                         children: [
                           Container(
@@ -112,7 +111,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ),
-                ),
               ),
             ),
             SliverPadding(
@@ -124,16 +122,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       padding: EdgeInsets.only(bottom: 16),
                       child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))),
                     ),
-                  Row(
-                    children: [
-                      _ProfileStat(label: 'Orders', value: '${_user.orderCount}'),
-                      const SizedBox(width: 12),
-                      _ProfileStat(label: 'Reviews', value: '${_user.reviewCount}'),
-                      const SizedBox(width: 12),
-                      _ProfileStat(label: 'Joined', value: _user.formattedJoinDate, compact: true),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 4),
                   const _SectionTitle('Account Details'),
                   const SizedBox(height: 12),
                   _InfoTile(label: 'Full Name', value: _user.name, icon: Icons.person_outline_rounded),
