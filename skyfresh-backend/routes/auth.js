@@ -3,6 +3,44 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Order = require('../models/Order');
+const Review = require('../models/Review');
+
+function getToken(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+  return authHeader.split(' ')[1];
+}
+
+function requireAuth(req, res, next) {
+  const token = getToken(req);
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'No token provided' });
+  }
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch (err) {
+    return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+  }
+}
+
+function formatUser(user, stats = {}) {
+  return {
+    id: user._id,
+    name: user.name,
+    phone: user.phone,
+    joinedAt: user.createdAt,
+    addresses: (user.addresses || []).map((a) => ({
+      id: a._id,
+      label: a.label,
+      line: a.line,
+      isDefault: a.isDefault,
+    })),
+    orderCount: stats.orderCount ?? 0,
+    reviewCount: stats.reviewCount ?? 0,
+  };
+}
 
 // ── REGISTER
 router.post('/register', async (req, res) => {
@@ -128,36 +166,131 @@ router.post('/login', async (req, res) => {
 });
 
 // ── CURRENT USER PROFILE
-router.get('/me', async (req, res) => {
+router.get('/me', requireAuth, async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ success: false, message: 'No token provided' });
-    }
-
-    const token = authHeader.split(' ')[1];
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (err) {
-      return res.status(401).json({ success: false, message: 'Invalid or expired token' });
-    }
-
-    const user = await User.findById(decoded.id).select('name phone createdAt');
+    const user = await User.findById(req.user.id).select('name phone createdAt addresses');
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
+    const [orderCount, reviewCount] = await Promise.all([
+      Order.countDocuments({ user: user._id }),
+      Review.countDocuments({ user: user._id }),
+    ]);
+
     res.json({
       success: true,
-      user: {
-        id: user._id,
-        name: user.name,
-        phone: user.phone,
-        joinedAt: user.createdAt,
-      }
+      user: formatUser(user, { orderCount, reviewCount }),
     });
 
+  } catch (err) {
+    res.json({ success: false, message: 'Server error', error: err.message });
+  }
+});
+
+// ── ADD ADDRESS
+router.post('/addresses', requireAuth, async (req, res) => {
+  try {
+    const { label, line, isDefault } = req.body;
+    if (!line || !line.trim()) {
+      return res.json({ success: false, message: 'Address is required' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.json({ success: false, message: 'User not found' });
+    }
+
+    if (isDefault || user.addresses.length === 0) {
+      user.addresses.forEach((a) => { a.isDefault = false; });
+    }
+
+    user.addresses.push({
+      label: (label || 'Home').trim(),
+      line: line.trim(),
+      isDefault: isDefault === true || user.addresses.length === 0,
+    });
+    await user.save();
+
+    const [orderCount, reviewCount] = await Promise.all([
+      Order.countDocuments({ user: user._id }),
+      Review.countDocuments({ user: user._id }),
+    ]);
+
+    res.json({
+      success: true,
+      message: 'Address saved',
+      user: formatUser(user, { orderCount, reviewCount }),
+    });
+  } catch (err) {
+    res.json({ success: false, message: 'Server error', error: err.message });
+  }
+});
+
+// ── DELETE ADDRESS
+router.delete('/addresses/:id', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.json({ success: false, message: 'User not found' });
+    }
+
+    const address = user.addresses.id(req.params.id);
+    if (!address) {
+      return res.json({ success: false, message: 'Address not found' });
+    }
+
+    const wasDefault = address.isDefault;
+    address.deleteOne();
+
+    if (wasDefault && user.addresses.length > 0) {
+      user.addresses[0].isDefault = true;
+    }
+
+    await user.save();
+
+    const [orderCount, reviewCount] = await Promise.all([
+      Order.countDocuments({ user: user._id }),
+      Review.countDocuments({ user: user._id }),
+    ]);
+
+    res.json({
+      success: true,
+      message: 'Address removed',
+      user: formatUser(user, { orderCount, reviewCount }),
+    });
+  } catch (err) {
+    res.json({ success: false, message: 'Server error', error: err.message });
+  }
+});
+
+// ── SET DEFAULT ADDRESS
+router.patch('/addresses/:id/default', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.json({ success: false, message: 'User not found' });
+    }
+
+    const address = user.addresses.id(req.params.id);
+    if (!address) {
+      return res.json({ success: false, message: 'Address not found' });
+    }
+
+    user.addresses.forEach((a) => { a.isDefault = false; });
+    address.isDefault = true;
+    await user.save();
+
+    const [orderCount, reviewCount] = await Promise.all([
+      Order.countDocuments({ user: user._id }),
+      Review.countDocuments({ user: user._id }),
+    ]);
+
+    res.json({
+      success: true,
+      message: 'Default address updated',
+      user: formatUser(user, { orderCount, reviewCount }),
+    });
   } catch (err) {
     res.json({ success: false, message: 'Server error', error: err.message });
   }

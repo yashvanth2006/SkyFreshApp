@@ -27,7 +27,12 @@ const userSchema = new mongoose.Schema({
   isVerified: {
     type: Boolean,
     default: false
-  }
+  },
+  addresses: [{
+    label: { type: String, default: 'Home', trim: true },
+    line: { type: String, required: true, trim: true },
+    isDefault: { type: Boolean, default: false },
+  }],
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

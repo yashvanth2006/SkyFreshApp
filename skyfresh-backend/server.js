@@ -29,6 +29,7 @@ app.use((req, res, next) => {
 app.use('/api/auth',     require('./routes/auth'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
+app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/serviceability', require('./routes/serviceability'));
 
 // Test route

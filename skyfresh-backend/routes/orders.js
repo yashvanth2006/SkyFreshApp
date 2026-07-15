@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Order = require('../models/Order');
+const User = require('../models/User');
 
 // ── Auth middleware: verifies JWT and attaches user info to req.user
 function requireAuth(req, res, next) {
@@ -41,7 +42,21 @@ router.post('/', requireAuth, async (req, res) => {
     });
     await order.save();
 
-    res.json({ success: true, message: 'Order placed successfully', order });
+    const user = await User.findById(req.user.id);
+    if (user) {
+      const trimmed = address.trim();
+      const exists = user.addresses.some((a) => a.line === trimmed);
+      if (!exists) {
+        if (user.addresses.length === 0) {
+          user.addresses.push({ label: 'Home', line: trimmed, isDefault: true });
+        } else {
+          user.addresses.push({ label: 'Saved', line: trimmed, isDefault: false });
+        }
+        await user.save();
+      }
+    }
+
+    res.json({ success: true, message: 'Order placed successfully', order, orderId: order._id });
 
   } catch (err) {
     res.json({ success: false, message: 'Server error', error: err.message });

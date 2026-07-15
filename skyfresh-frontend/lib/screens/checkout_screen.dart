@@ -92,7 +92,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (!mounted) return;
 
     if (res['success'] == true) {
-      final orderId = res['orderId'] ?? res['id'] ?? '';
+      final orderId = res['orderId']?.toString() ?? res['order']?['_id']?.toString() ?? '';
       cart.clear();
       Navigator.pushReplacement(
         context,
