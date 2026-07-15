@@ -268,8 +268,8 @@ class _HomeScreenState extends State<HomeScreen> {
             Transform.translate(
               offset: const Offset(0, -8),
               child: Container(
-                width: 52,
-                height: 52,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   gradient: selected ? AppTheme.greenGradient : const LinearGradient(
                     colors: [AppTheme.primaryDark, AppTheme.primary],

@@ -57,14 +57,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               pinned: true,
               backgroundColor: AppTheme.primaryDark,
               foregroundColor: Colors.white,
-              flexibleSpace: FlexibleSpaceBar(
-                titlePadding: const EdgeInsetsDirectional.only(start: 56, bottom: 16),
-                title: const Text('My Profile', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
-                background: Container(
+              title: const Text('My Profile', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+              flexibleSpace: Container(
                   decoration: const BoxDecoration(gradient: AppTheme.greenGradient),
                   child: SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 56, 20, 20),
+                      padding: const EdgeInsets.fromLTRB(20, 76, 20, 20),
                       child: Row(
                         children: [
                           Container(
@@ -113,7 +111,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ),
-                ),
               ),
             ),
             SliverPadding(
