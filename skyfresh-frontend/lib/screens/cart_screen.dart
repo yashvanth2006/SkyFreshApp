@@ -30,7 +30,7 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
-    final deliveryFee = cart.items.isEmpty ? 0 : (cart.totalPrice >= 200 ? 0 : 20);
+    final deliveryFee = cart.items.isEmpty ? 0 : (cart.totalPrice >= 500 ? 0 : 50);
     final grandTotal = cart.totalPrice + deliveryFee;
 
     return Scaffold(
@@ -223,7 +223,7 @@ class _CartScreenState extends State<CartScreen> {
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: AppTheme.border)
                         ),
-                        child: Text('Add ₹${200 - cart.totalPrice} more for free delivery',
+                        child: Text('Add ₹${500 - cart.totalPrice} more for free delivery',
                           style: const TextStyle(fontSize: 11.5, color: AppTheme.primaryLight,
                               fontWeight: FontWeight.w600)),
                       ),

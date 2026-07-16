@@ -29,7 +29,7 @@ class OrderSuccessScreen extends StatelessWidget {
               const SizedBox(height: 12),
               Text('Thank you for ordering with SKYfresh!\nOrder ID: $orderId', textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.textMuted)),
               const SizedBox(height: 18),
-              const Text('Estimated Delivery: 45 - 60 mins', style: TextStyle(fontWeight: FontWeight.w700)),
+              const Text('Estimated Delivery: 30 - 60 mins', style: TextStyle(fontWeight: FontWeight.w700)),
               const SizedBox(height: 28),
               SizedBox(
                 width: double.infinity,

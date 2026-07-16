@@ -52,7 +52,7 @@ class _AiScreenState extends State<AiScreen> {
     if (q.contains('diabetes') || q.contains('sugar')) {
       return 'Fruit can fit many eating plans, but portions and personal medical advice matter. Choose whole fruit over juice and check with your clinician for tailored guidance.';
     }
-    return 'Whole fruit is a great source of fibre and micronutrients. Tell me your goal or ask about a specific fruit and I’ll help with a practical suggestion.';
+    return 'Tell me your goal or ask about a specific fruit and I’ll help with a practical suggestion.';
   }
 
   @override
