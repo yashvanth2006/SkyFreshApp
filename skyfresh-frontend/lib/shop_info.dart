@@ -6,7 +6,7 @@ class ShopInfo {
   static const secondaryPhone = '9894325988';
   static const whatsAppPhone = primaryPhone;
   static const email = 'yashvanth2006k@gmail.com';
-  static const openingHours = 'Open daily · 8:30 AM – 10:00 PM';
+  static const openingHours = 'Open daily · 8:30 AM To 10:00 PM';
   static const googleMapsUrl =
       'https://www.google.com/maps/place/SKY+PAZHAMUDHIR+NILAYAM/@11.0427426,76.9243548,21z/data=!4m6!3m5!1s0x3ba859c28e3e7561:0x3124c49cd088be1c!8m2!3d11.0427535!4d76.9241488!16s%2Fg%2F11vfb3hjlr?entry=ttu';
   static const latitude = 11.0427535;
