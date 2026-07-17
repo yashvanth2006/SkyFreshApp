@@ -1,114 +1,154 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const initialProducts = [
-  { id: 1, name: 'Fresh Mango',       price: 60,  unit: '250g',  emoji: '🥭', category: 'Fruits',     stock: 50 },
-  { id: 2, name: 'Watermelon',        price: 40,  unit: '500g',  emoji: '🍉', category: 'Fresh Cuts', stock: 30 },
-  { id: 3, name: 'Orange Juice',      price: 80,  unit: '300ml', emoji: '🍊', category: 'Juices',     stock: 25 },
-  { id: 4, name: 'Fresh Apple',       price: 50,  unit: '200g',  emoji: '🍎', category: 'Fruits',     stock: 40 },
-  { id: 5, name: 'Mango Juice',       price: 90,  unit: '300ml', emoji: '🥭', category: 'Juices',     stock: 20 },
-  { id: 6, name: 'Pineapple',         price: 70,  unit: '300g',  emoji: '🍍', category: 'Fruits',     stock: 35 },
-  { id: 7, name: 'Green Juice',       price: 100, unit: '300ml', emoji: '🥬', category: 'Juices',     stock: 15 },
-  { id: 8, name: 'Mixed Fruit Bowl',  price: 120, unit: '400g',  emoji: '🍱', category: 'Fresh Cuts', stock: 20 },
-];
+const Products = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-export default function Products() {
-  const [products, setProducts] = useState(initialProducts);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', price: '', unit: '', emoji: '', category: 'Fruits', stock: '' });
+  // Form State
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+  const [unit, setUnit] = useState('1 kg');
+  const [emoji, setEmoji] = useState('🍎');
+  const [category, setCategory] = useState('Fruits');
+  const [stock, setStock] = useState(50);
+  const [color, setColor] = useState('#FFF3CD');
 
-  const handleAdd = () => {
-    if (!form.name || !form.price) return;
-    setProducts([...products, { ...form, id: Date.now(), price: Number(form.price), stock: Number(form.stock) }]);
-    setForm({ name: '', price: '', unit: '', emoji: '', category: 'Fruits', stock: '' });
-    setShowForm(false);
+  const API_URL = 'http://localhost:5000/api/products';
+  
+  // Custom headers including token verification
+  const getAdminHeaders = () => {
+    const token = localStorage.getItem('adminToken');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
   };
 
-  const handleDelete = (id) => {
-    setProducts(products.filter(p => p.id !== id));
+  // Fetch all live products from the MongoDB database
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(API_URL);
+      const data = await response.json();
+      if (data.success) {
+        setProducts(data.products);
+      } else {
+        setError(data.message);
+      }
+    } catch (err) {
+      setError('Could not connect to the backend server.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  // Handle adding a new product to the database
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
+    const newProduct = { name, price: Number(price), unit, emoji, category, stock: Number(stock), color };
+
+    try {
+      const response = await fetch(`${API_URL}/add`, {
+        method: 'POST',
+        headers: getAdminHeaders(),
+        body: JSON.stringify(newProduct),
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setProducts([...products, data.product]);
+        // Reset dynamic form elements
+        setName('');
+        setPrice('');
+        alert('🌿 Product added to catalog successfully!');
+      } else {
+        alert(`Failed to add product: ${data.message}`);
+      }
+    } catch (err) {
+      alert('Error connecting to backend.');
+    }
+  };
+
+  // Handle removing a product from the database
+  const handleDeleteProduct = async (id) => {
+    if (!window.confirm('Are you sure you want to remove this item from the catalog?')) return;
+
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE',
+        headers: getAdminHeaders(),
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setProducts(products.filter(p => p._id !== id));
+      } else {
+        alert(`Failed to delete: ${data.message}`);
+      }
+    } catch (err) {
+      alert('Error connecting to backend.');
+    }
+  };
+
+  if (loading) return <div style={{ padding: '20px' }}>Loading live product catalog...</div>;
+  if (error) return <div style={{ padding: '20px', color: 'red' }}>❌ Error: {error}</div>;
 
   return (
-    <div style={styles.page}>
-      {/* Header */}
-      <div style={styles.header}>
-        <div>
-          <h1 style={styles.title}>Products 🍎</h1>
-          <p style={styles.sub}>{products.length} products in catalog</p>
+    <div style={{ padding: '20px' }}>
+      <h2>Inventory Management Dashboard</h2>
+      
+      {/* Add Product Form */}
+      <form onSubmit={handleAddProduct} style={{ background: '#f4f4f4', padding: '20px', borderRadius: '8px', marginBottom: '30px' }}>
+        <h3>Add New Fresh Item</h3>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+          <input type="text" placeholder="Product Name" value={name} onChange={e => setName(e.target.value)} required style={{ padding: '8px', flex: 1 }} />
+          <input type="number" placeholder="Price (₹)" value={price} onChange={e => setPrice(e.target.value)} required style={{ padding: '8px', width: '120px' }} />
+          <input type="text" placeholder="Unit (e.g. 1 kg)" value={unit} onChange={e => setUnit(e.target.value)} required style={{ padding: '8px', width: '120px' }} />
         </div>
-        <button style={styles.addBtn} onClick={() => setShowForm(!showForm)}>
-          + Add Product
-        </button>
-      </div>
-
-      {/* Add form */}
-      {showForm && (
-        <div style={styles.form}>
-          <h3 style={{ marginBottom: 16, color: '#0C1A2E' }}>Add New Product</h3>
-          <div style={styles.formGrid}>
-            <input style={styles.input} placeholder="Product name"
-              value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-            <input style={styles.input} placeholder="Emoji (e.g. 🍊)"
-              value={form.emoji} onChange={e => setForm({ ...form, emoji: e.target.value })} />
-            <input style={styles.input} placeholder="Price (₹)"
-              type="number" value={form.price}
-              onChange={e => setForm({ ...form, price: e.target.value })} />
-            <input style={styles.input} placeholder="Unit (e.g. 250g)"
-              value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })} />
-            <select style={styles.input} value={form.category}
-              onChange={e => setForm({ ...form, category: e.target.value })}>
-              <option>Fruits</option>
-              <option>Juices</option>
-              <option>Fresh Cuts</option>
-            </select>
-            <input style={styles.input} placeholder="Stock quantity"
-              type="number" value={form.stock}
-              onChange={e => setForm({ ...form, stock: e.target.value })} />
-          </div>
-          <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-            <button style={styles.saveBtn} onClick={handleAdd}>Save Product</button>
-            <button style={styles.cancelBtn} onClick={() => setShowForm(false)}>Cancel</button>
-          </div>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <input type="text" placeholder="Emoji (e.g. 🍉)" value={emoji} onChange={e => setEmoji(e.target.value)} required style={{ padding: '8px', width: '100px' }} />
+          <input type="number" placeholder="Stock Qty" value={stock} onChange={e => setStock(e.target.value)} required style={{ padding: '8px', width: '100px' }} />
+          <input type="color" value={color} onChange={e => setColor(e.target.value)} style={{ width: '50px', height: '38px', padding: '0', border: 'none' }} title="Choose background highlight color" />
+          
+          <select value={category} onChange={e => setCategory(e.target.value)} style={{ padding: '8px' }}>
+            <option value="Fruits">Fruits</option>
+            <option value="Juices">Juices</option>
+            <option value="Fresh Cuts">Fresh Cuts</option>
+          </select>
+          <button type="submit" style={{ padding: '8px 20px', background: '#2e7d32', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Save Product</button>
         </div>
-      )}
+      </form>
 
-      {/* Products table */}
-      <div style={styles.card}>
-        <table style={styles.table}>
+      {/* Products Table Data View */}
+      <div>
+        <h3>Current Catalog ({products.length} items)</h3>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
-            <tr>
-              {['Product', 'Category', 'Price', 'Unit', 'Stock', 'Actions'].map(h => (
-                <th key={h} style={styles.th}>{h}</th>
-              ))}
+            <tr style={{ background: '#e0e0e0' }}>
+              <th style={{ padding: '12px' }}>Item</th>
+              <th style={{ padding: '12px' }}>Category</th>
+              <th style={{ padding: '12px' }}>Price</th>
+              <th style={{ padding: '12px' }}>Stock Status</th>
+              <th style={{ padding: '12px' }}>Action</th>
             </tr>
           </thead>
           <tbody>
-            {products.map(p => (
-              <tr key={p.id} style={styles.tr}>
-                <td style={styles.td}>
-                  <div style={styles.productCell}>
-                    <span style={styles.emoji}>{p.emoji}</span>
-                    <span style={{ fontWeight: 600 }}>{p.name}</span>
-                  </div>
+            {products.map(product => (
+              <tr key={product._id} style={{ borderBottom: '1px solid #ddd' }}>
+                <td style={{ padding: '12px' }}>
+                  <span style={{ marginRight: '8px', padding: '4px 8px', borderRadius: '4px', background: product.color || '#fff' }}>{product.emoji}</span> 
+                  {product.name} ({product.unit})
                 </td>
-                <td style={styles.td}>
-                  <span style={styles.catBadge}>{p.category}</span>
-                </td>
-                <td style={styles.td}>₹{p.price}</td>
-                <td style={styles.td}>{p.unit}</td>
-                <td style={styles.td}>
-                  <span style={{
-                    ...styles.stockBadge,
-                    background: p.stock > 20 ? '#DCFCE7' : '#FEF9C3',
-                    color: p.stock > 20 ? '#16A34A' : '#CA8A04',
-                  }}>
-                    {p.stock} left
-                  </span>
-                </td>
-                <td style={styles.td}>
-                  <button style={styles.deleteBtn}
-                    onClick={() => handleDelete(p.id)}>
-                    🗑️ Delete
-                  </button>
+                <td style={{ padding: '12px' }}>{product.category}</td>
+                <td style={{ padding: '12px' }}>₹{product.price}</td>
+                <td style={{ padding: '12px' }}>{product.stock} units</td>
+                <td style={{ padding: '12px' }}>
+                  <button onClick={() => handleDeleteProduct(product._id)} style={{ background: '#d32f2f', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}>Remove</button>
                 </td>
               </tr>
             ))}
@@ -117,27 +157,6 @@ export default function Products() {
       </div>
     </div>
   );
-}
-
-const styles = {
-  page: { padding: 28 },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
-  title: { fontSize: 26, fontWeight: 800, color: '#0C1A2E' },
-  sub: { fontSize: 13, color: '#94A3B8', marginTop: 4 },
-  addBtn: { background: 'linear-gradient(90deg, #0EA5E9, #38BDF8)', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer' },
-  form: { background: '#fff', borderRadius: 18, padding: 24, marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' },
-  formGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 },
-  input: { padding: '10px 14px', border: '1.5px solid #E2E8F0', borderRadius: 10, fontSize: 13, outline: 'none', width: '100%' },
-  saveBtn: { background: 'linear-gradient(90deg, #16A34A, #22C55E)', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: 10, fontWeight: 700, cursor: 'pointer' },
-  cancelBtn: { background: '#F1F5F9', color: '#64748B', border: 'none', padding: '10px 24px', borderRadius: 10, fontWeight: 700, cursor: 'pointer' },
-  card: { background: '#fff', borderRadius: 18, padding: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' },
-  table: { width: '100%', borderCollapse: 'collapse' },
-  th: { textAlign: 'left', fontSize: 12, color: '#94A3B8', fontWeight: 600, paddingBottom: 12, borderBottom: '2px solid #F1F5F9' },
-  tr: { borderBottom: '1px solid #F8FAFC' },
-  td: { padding: '12px 0', fontSize: 13, color: '#0C1A2E' },
-  productCell: { display: 'flex', alignItems: 'center', gap: 10 },
-  emoji: { fontSize: 24, background: '#F8FAFC', padding: 6, borderRadius: 8 },
-  catBadge: { background: '#E0F2FE', color: '#0284C7', padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600 },
-  stockBadge: { padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700 },
-  deleteBtn: { background: '#FEF2F2', color: '#EF4444', border: 'none', padding: '6px 12px', borderRadius: 8, fontSize: 12, cursor: 'pointer', fontWeight: 600 },
 };
+
+export default Products;
