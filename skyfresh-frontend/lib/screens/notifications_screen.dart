@@ -175,17 +175,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 color: Colors.black.withOpacity(0.05),
                                 blurRadius: 12, offset: const Offset(0, 4))],
                             ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.all(14),
-                              leading: Container(
-                                width: 52, height: 52,
-                                decoration: BoxDecoration(
-                                  color: Color(n['color']),
-                                  borderRadius: BorderRadius.circular(15)),
-                                child: Center(
-                                  child: Text(n['icon'],
-                                    style: const TextStyle(fontSize: 24))),
-                              ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(14),
+                                leading: Container(
+                                  width: 52, height: 52,
+                                  decoration: BoxDecoration(
+                                    color: Color(n['color']),
+                                    borderRadius: BorderRadius.circular(15)),
+                                  child: Center(
+                                    child: Text(n['icon'],
+                                      style: const TextStyle(fontSize: 24))),
+                                ),
                               title: Row(
                                 children: [
                                   Expanded(
@@ -220,6 +222,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             ),
                           ),
                         ),
+                      ),
                       );
                     },
                   ),
