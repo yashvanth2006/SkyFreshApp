@@ -747,23 +747,26 @@ class _HomeScreenState extends State<HomeScreen> {
         border: Border.all(color: AppTheme.border),
         boxShadow: [AppTheme.cardShadow.copyWith(blurRadius: 8, offset: const Offset(0, 3))],
       ),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: isDestructive ? Colors.redAccent.withOpacity(0.1) : AppTheme.primaryLight.withOpacity(0.18),
-            borderRadius: BorderRadius.circular(12),
+      child: Material(
+        color: Colors.transparent,
+        child: ListTile(
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          leading: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: isDestructive ? Colors.redAccent.withOpacity(0.1) : AppTheme.primaryLight.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 21),
           ),
-          child: Icon(icon, color: color, size: 21),
+          title: Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: color)),
+          subtitle: subtitle != null
+              ? Text(subtitle, style: const TextStyle(fontSize: 12, color: AppTheme.textMuted, fontWeight: FontWeight.w500))
+              : null,
+          trailing: Icon(Icons.chevron_right_rounded, color: isDestructive ? Colors.redAccent.withOpacity(0.5) : AppTheme.textMuted),
         ),
-        title: Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: color)),
-        subtitle: subtitle != null
-            ? Text(subtitle, style: const TextStyle(fontSize: 12, color: AppTheme.textMuted, fontWeight: FontWeight.w500))
-            : null,
-        trailing: Icon(Icons.chevron_right_rounded, color: isDestructive ? Colors.redAccent.withOpacity(0.5) : AppTheme.textMuted),
       ),
     );
   }
