@@ -1,190 +1,157 @@
 import React, { useState, useEffect } from 'react';
 
-const API_BASE = 'http://localhost:5000/api';
-
-const STATUS_META = {
-  placed:            { label: 'Placed',           bg: '#DBEAFE', color: '#1D4ED8' },
-  confirmed:         { label: 'Confirmed',        bg: '#EDE9FE', color: '#7C3AED' },
-  out_for_delivery:  { label: 'Out for Delivery', bg: '#FFEDD5', color: '#EA580C' },
-  delivered:         { label: 'Delivered',        bg: '#DCFCE7', color: '#16A34A' },
-  cancelled:         { label: 'Cancelled',        bg: '#FEE2E2', color: '#DC2626' },
-};
-
-const STATUS_TABS = ['All', 'placed', 'confirmed', 'out_for_delivery', 'delivered', 'cancelled'];
-
-function formatDate(iso) {
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-function itemsSummary(items) {
-  return items.map(i => `${i.name}${i.quantity > 1 ? ` x${i.quantity}` : ''}`).join(', ');
-}
-
-export default function Orders() {
+const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [filter, setFilter] = useState('All');
-  const [updatingId, setUpdatingId] = useState(null);
+  const [error, setError] = useState(null);
 
+  const API_URL = 'http://localhost:5000/api/orders';
+
+  // Fetch all live customer orders across the platform
   const fetchOrders = async () => {
-    setLoading(true);
-    setError('');
     try {
-      const res = await fetch(`${API_BASE}/orders`);
-      const data = await res.json();
+      setLoading(true);
+      const response = await fetch(API_URL);
+      const data = await response.json();
       if (data.success) {
         setOrders(data.orders);
       } else {
-        setError(data.message || 'Could not load orders');
+        setError(data.message);
       }
-    } catch (e) {
-      setError('Cannot connect to server. Is the backend running?');
+    } catch (err) {
+      setError('Could not connect to the backend server to fetch orders.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
     fetchOrders();
   }, []);
 
-  const filtered = filter === 'All' ? orders : orders.filter(o => o.status === filter);
-
-  const updateStatus = async (id, status) => {
-    setUpdatingId(id);
-    const prevOrders = orders;
-    setOrders(orders.map(o => o._id === id ? { ...o, status } : o));
-
+  // Handle changing an order's fulfillment tracking status
+  const handleStatusChange = async (orderId, newStatus) => {
     try {
-      const res = await fetch(`${API_BASE}/orders/${id}/status`, {
+      const response = await fetch(`${API_URL}/${orderId}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
       });
-      const data = await res.json();
-      if (!data.success) {
-        setOrders(prevOrders);
-        alert(data.message || 'Could not update status');
+      const data = await response.json();
+
+      if (data.success) {
+        // Update local state smoothly
+        setOrders(orders.map(order => 
+          order._id === orderId ? { ...order, status: newStatus } : order
+        ));
+        alert(`Status updated to: ${newStatus.replace(/_/g, ' ')} 🚚`);
+      } else {
+        alert(`Failed to update status: ${data.message}`);
       }
-    } catch (e) {
-      setOrders(prevOrders);
-      alert('Cannot connect to server.');
+    } catch (err) {
+      alert('Error updating status on backend.');
     }
-    setUpdatingId(null);
   };
 
-  const countByStatus = (status) => orders.filter(o => o.status === status).length;
+  // Helper function to color code badges based on delivery state
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case 'placed': return { bg: '#e3f2fd', color: '#0d47a1' };
+      case 'confirmed': return { bg: '#fff3e0', color: '#e65100' };
+      case 'out_for_delivery': return { bg: '#f3e5f5', color: '#4a148c' };
+      case 'delivered': return { bg: '#e8f5e9', color: '#1b5e20' };
+      case 'cancelled': return { bg: '#ffebee', color: '#b71c1c' };
+      default: return { bg: '#f5f5f5', color: '#333' };
+    }
+  };
+
+  if (loading) return <div style={{ padding: '20px' }}>Loading incoming orders pipeline...</div>;
+  if (error) return <div style={{ padding: '20px', color: 'red' }}>❌ Error: {error}</div>;
 
   return (
-    <div style={styles.page}>
-      <div style={styles.header}>
-        <div>
-          <h1 style={styles.title}>Orders 📦</h1>
-          <p style={styles.sub}>{orders.length} total orders</p>
-        </div>
-        <div style={styles.summaryRow}>
-          <div style={styles.summaryBadge('#DCFCE7', '#16A34A')}>
-            ✅ {countByStatus('delivered')} Delivered
-          </div>
-          <div style={styles.summaryBadge('#DBEAFE', '#1D4ED8')}>
-            📦 {countByStatus('placed')} Placed
-          </div>
-          <div style={styles.summaryBadge('#FFEDD5', '#EA580C')}>
-            🛵 {countByStatus('out_for_delivery')} Out for Delivery
-          </div>
-        </div>
-      </div>
+    <div style={{ padding: '20px' }}>
+      <h2>Live Customer Orders Pipeline</h2>
+      <h3>Active Batches ({orders.length} orders total)</h3>
 
-      <div style={styles.tabs}>
-        {STATUS_TABS.map(f => (
-          <button key={f} style={{
-            ...styles.tab,
-            background: filter === f ? 'linear-gradient(90deg, #15803D, #22C55E)' : '#fff',
-            color: filter === f ? '#fff' : '#64748B',
-            boxShadow: filter === f ? '0 4px 12px rgba(21,128,61,0.3)' : 'none',
-          }} onClick={() => setFilter(f)}>
-            {f === 'All' ? 'All' : STATUS_META[f].label}
-          </button>
-        ))}
-        <button style={styles.refreshBtn} onClick={fetchOrders} disabled={loading}>
-          {loading ? 'Refreshing…' : '↻ Refresh'}
-        </button>
-      </div>
-
-      <div style={styles.card}>
-        {loading ? (
-          <div style={styles.centerMsg}>Loading orders…</div>
-        ) : error ? (
-          <div style={{ ...styles.centerMsg, color: '#DC2626' }}>{error}</div>
-        ) : filtered.length === 0 ? (
-          <div style={styles.centerMsg}>No orders found.</div>
-        ) : (
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                {['Customer', 'Phone', 'Items', 'Address', 'Total', 'Date', 'Status', 'Update'].map(h => (
-                  <th key={h} style={styles.th}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(o => (
-                <tr key={o._id} style={styles.tr}>
-                  <td style={{ ...styles.td, fontWeight: 700 }}>{o.user?.name || 'Unknown'}</td>
-                  <td style={styles.td}>{o.user?.phone || '—'}</td>
-                  <td style={styles.td}>{itemsSummary(o.items)}</td>
-                  <td style={{ ...styles.td, maxWidth: 180, color: '#64748B' }}>{o.address}</td>
-                  <td style={{ ...styles.td, fontWeight: 700 }}>₹{o.total}</td>
-                  <td style={{ ...styles.td, color: '#94A3B8' }}>{formatDate(o.createdAt)}</td>
-                  <td style={styles.td}>
-                    <span style={{
-                      ...styles.badge,
-                      background: STATUS_META[o.status]?.bg || '#F1F5F9',
-                      color: STATUS_META[o.status]?.color || '#64748B',
-                    }}>
-                      {STATUS_META[o.status]?.label || o.status}
+      {orders.length === 0 ? (
+        <div style={{ padding: '40px', textAlign: 'center', background: '#f9f9f9', borderRadius: '8px', border: '1px dashed #ccc' }}>
+          🛒 No orders have been placed on the platform yet.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {orders.map(order => {
+            const badge = getStatusStyle(order.status);
+            return (
+              <div key={order._id} style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '20px', background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                
+                {/* Header Row */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px' }}>
+                  <div>
+                    <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>Order ID: #{order._id.slice(-6).toUpperCase()}</span>
+                    <span style={{ marginLeft: '15px', color: '#666', fontSize: '0.9rem' }}>
+                      {new Date(order.createdAt).toLocaleString()}
                     </span>
-                  </td>
-                  <td style={styles.td}>
-                    <select
-                      value={o.status}
-                      disabled={updatingId === o._id}
-                      onChange={e => updateStatus(o._id, e.target.value)}
-                      style={styles.select}>
-                      <option value="placed">Placed</option>
-                      <option value="confirmed">Confirmed</option>
-                      <option value="out_for_delivery">Out for Delivery</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="cancelled">Cancelled</option>
+                  </div>
+                  <div>
+                    <span style={{ backgroundColor: badge.bg, color: badge.color, padding: '6px 12px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem', textTransform: 'uppercase' }}>
+                      {order.status.replace(/_/g, ' ')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Content Layout Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
+                  
+                  {/* Left Column: Items Purchased */}
+                  <div>
+                    <h4 style={{ margin: '0 0 10px 0', color: '#555' }}>Items Ordered</h4>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                      {order.items.map((item, index) => (
+                        <li key={index} style={{ padding: '6px 0', borderBottom: '1px dashed #f0f0f0', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>{item.emoji} {item.name} <span style={{ color: '#777' }}>x{item.quantity}</span></span>
+                          <span style={{ fontWeight: '500' }}>₹{item.price * item.quantity}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div style={{ marginTop: '10px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                      Total Bill: <span style={{ color: '#2e7d32' }}>₹{order.total}</span>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Customer Details & Fulfillment Controls */}
+                  <div style={{ borderLeft: '1px solid #eee', paddingLeft: '20px' }}>
+                    <h4 style={{ margin: '0 0 5px 0', color: '#555' }}>Customer Info</h4>
+                    <p style={{ margin: '0 0 5px 0', fontWeight: '500' }}>{order.user?.name || 'Guest User'}</p>
+                    <p style={{ margin: '0 0 15px 0', color: '#666', fontSize: '0.9rem' }}>📞 {order.user?.phone || 'N/A'}</p>
+
+                    <h4 style={{ margin: '0 0 5px 0', color: '#555' }}>Delivery Destination</h4>
+                    <p style={{ margin: '0 0 20px 0', fontSize: '0.9rem', color: '#444', lineHeight: '1.4' }}>📍 {order.address}</p>
+
+                    <h4 style={{ margin: '0 0 8px 0', color: '#555' }}>Dispatch Management</h4>
+                    <select 
+                      value={order.status} 
+                      onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                      style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', background: '#fafafa', cursor: 'pointer', fontWeight: '500' }}
+                    >
+                      <option value="placed">Placed (Pending Review)</option>
+                      <option value="confirmed">Confirm Order</option>
+                      <option value="out_for_delivery">Out For Delivery 🛵</option>
+                      <option value="delivered">Mark as Delivered ✅</option>
+                      <option value="cancelled">Cancel Order ❌</option>
                     </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+                  </div>
+
+                </div>
+
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
-}
-
-const styles = {
-  page: { padding: 28 },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
-  title: { fontSize: 26, fontWeight: 800, color: '#0C1A2E' },
-  sub: { fontSize: 13, color: '#94A3B8', marginTop: 4 },
-  summaryRow: { display: 'flex', gap: 10 },
-  summaryBadge: (bg, color) => ({ background: bg, color, padding: '8px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700 }),
-  tabs: { display: 'flex', gap: 8, marginBottom: 20, alignItems: 'center' },
-  tab: { padding: '8px 20px', borderRadius: 20, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
-  refreshBtn: { marginLeft: 'auto', padding: '8px 16px', borderRadius: 20, border: '1.5px solid #E2E8F0', background: '#fff', color: '#15803D', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
-  card: { background: '#fff', borderRadius: 18, padding: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' },
-  centerMsg: { padding: '40px 0', textAlign: 'center', color: '#94A3B8', fontSize: 14 },
-  table: { width: '100%', borderCollapse: 'collapse' },
-  th: { textAlign: 'left', fontSize: 12, color: '#94A3B8', fontWeight: 600, paddingBottom: 12, borderBottom: '2px solid #F1F5F9' },
-  tr: { borderBottom: '1px solid #F8FAFC' },
-  td: { padding: '12px 4px', fontSize: 13, color: '#0C1A2E' },
-  badge: { padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700 },
-  select: { padding: '6px 10px', border: '1.5px solid #E2E8F0', borderRadius: 8, fontSize: 12, cursor: 'pointer', outline: 'none' },
 };
+
+export default Orders;
