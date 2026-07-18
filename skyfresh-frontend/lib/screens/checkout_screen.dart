@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:skyfresh/cart_provider.dart';
 import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/api_service.dart';
 import 'package:skyfresh/models/user_profile.dart';
 import 'package:skyfresh/screens/order_success_screen.dart';
+
+// Web imports
+import 'dart:html' as html;
+import 'dart:js' as js;
 
 class CheckoutScreen extends StatefulWidget {
   final int subtotal;
@@ -29,7 +35,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _pinCtrl = TextEditingController();
   final _countryCtrl = TextEditingController(text: 'India');
 
+  late Razorpay _razorpay;
+  dynamic _razorpayWebInstance;
   bool _placing = false;
+  bool _processingPayment = false;
   bool _addressesLoading = true;
   List<UserAddress> _savedAddresses = const [];
   UserAddress? _selectedAddress;
@@ -38,6 +47,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    if (kIsWeb) {
+      // Web: Razorpay JS will be initialized when needed
+      print('Web platform - Razorpay JS will be initialized when needed');
+    } else {
+      // Mobile: Initialize Razorpay Flutter plugin
+      _razorpay = Razorpay();
+      _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+      _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+      _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+      print('Mobile platform - Razorpay initialized');
+    }
     _loadSavedAddresses();
   }
 
@@ -58,6 +78,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   void dispose() {
+    if (!kIsWeb) {
+      _razorpay.clear();
+    }
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
     _altPhoneCtrl.dispose();
@@ -82,6 +105,141 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _countryCtrl.text,
     ];
     return parts.where((p) => p.trim().isNotEmpty).join(', ');
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    setState(() => _processingPayment = false);
+    _placeOrder();
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    setState(() => _processingPayment = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Payment failed: ${response.message}')),
+    );
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('External wallet selected: ${response.walletName}')),
+    );
+  }
+
+  void _openRazorpay() {
+    final cart = context.read<CartProvider>();
+    if (cart.items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cart is empty')));
+      return;
+    }
+
+    if (_savedAddresses.isEmpty && !_formKey.currentState!.validate()) return;
+
+    setState(() => _processingPayment = true);
+
+    if (kIsWeb) {
+      _openRazorpayWeb();
+    } else {
+      _openRazorpayMobile();
+    }
+  }
+
+  void _openRazorpayMobile() {
+    var options = {
+      'key': 'rzp_test_TEbkIK2Vtv3aJO',
+      'amount': widget.grandTotal * 100,
+      'name': 'SKYfresh',
+      'description': 'Fresh fruits and juices',
+      'prefill': {
+        'contact': _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text : '',
+        'email': '',
+      },
+      'external': {
+        'wallets': ['paytm']
+      },
+      'modal': {
+        'confirm_close': true,
+        'escape': true,
+      },
+      'theme': {
+        'color': '#4CAF50'
+      }
+    };
+
+    try {
+      print('Opening Razorpay Mobile with options: $options');
+      _razorpay.open(options);
+      Future.delayed(const Duration(seconds: 30), () {
+        if (mounted && _processingPayment) {
+          setState(() => _processingPayment = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment timeout. Please try again.')),
+          );
+        }
+      });
+    } catch (e) {
+      print('Error opening Razorpay Mobile: $e');
+      setState(() => _processingPayment = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error opening Razorpay: $e')),
+      );
+    }
+  }
+
+  void _openRazorpayWeb() {
+    try {
+      var options = js.JsObject.jsify({
+        'key': 'rzp_test_TEbkIK2Vtv3aJO',
+        'amount': widget.grandTotal * 100,
+        'name': 'SKYfresh',
+        'description': 'Fresh fruits and juices',
+        'prefill': {
+          'contact': _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text : '',
+          'email': '',
+        },
+        'theme': {
+          'color': '#4CAF50'
+        },
+        'handler': (response) {
+          print('Payment success: $response');
+          setState(() => _processingPayment = false);
+          _placeOrder();
+        },
+        'modal': {
+          'ondismiss': () {
+            print('Payment modal dismissed');
+            setState(() => _processingPayment = false);
+          }
+        }
+      });
+
+      // Call Razorpay via JS
+      var razorpay = js.context['Razorpay'];
+      if (razorpay != null) {
+        _razorpayWebInstance = js.JsObject(razorpay, [options]);
+        _razorpayWebInstance.callMethod('open');
+        
+        Future.delayed(const Duration(seconds: 30), () {
+          if (mounted && _processingPayment) {
+            setState(() => _processingPayment = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Payment timeout. Please try again.')),
+            );
+          }
+        });
+      } else {
+        print('Razorpay JS not loaded');
+        setState(() => _processingPayment = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Razorpay not available. Please try again.')),
+        );
+      }
+    } catch (e) {
+      print('Error opening Razorpay Web: $e');
+      setState(() => _processingPayment = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error opening Razorpay: $e')),
+      );
+    }
   }
 
   Future<void> _placeOrder() async {
@@ -321,20 +479,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                     const SizedBox(height: 10),
                     GestureDetector(
-                      onTap: null,
+                      onTap: _processingPayment ? null : () {
+                        setState(() => _paymentMethod = 'Razorpay');
+                        _openRazorpay();
+                      },
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppTheme.surfaceLight,
+                          color: _paymentMethod == 'Razorpay' ? AppTheme.primary.withOpacity(0.12) : AppTheme.surfaceLight,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppTheme.border),
+                          border: Border.all(color: _paymentMethod == 'Razorpay' ? AppTheme.primary : AppTheme.border),
                         ),
                         child: Row(
-                          children: const [
-                            Icon(Icons.payment_rounded, color: AppTheme.textMuted),
-                            SizedBox(width: 12),
-                            Expanded(child: Text('Google Pay / Razorpay', style: TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textMuted))),
-                            Text('Coming Soon', style: TextStyle(color: AppTheme.textMuted)),
+                          children: [
+                            Icon(Icons.payment_rounded, color: _paymentMethod == 'Razorpay' ? AppTheme.primary : AppTheme.textMuted),
+                            const SizedBox(width: 12),
+                            Expanded(child: Text('Razorpay', style: TextStyle(fontWeight: FontWeight.w700, color: _paymentMethod == 'Razorpay' ? AppTheme.primary : AppTheme.textMuted))),
+                            if (_processingPayment)
+                              const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primary),
+                              ),
                           ],
                         ),
                       ),
@@ -350,12 +516,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: _placing ? null : _placeOrder,
+                  onPressed: _placing || _processingPayment ? null : () {
+                    if (_paymentMethod == 'Razorpay') {
+                      _openRazorpay();
+                    } else {
+                      _placeOrder();
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primary,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: _placing ? const CircularProgressIndicator(color: Colors.white) : const Text('Place Order', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                  child: _placing || _processingPayment 
+                      ? const CircularProgressIndicator(color: Colors.white) 
+                      : Text(_paymentMethod == 'Razorpay' ? 'Pay with Razorpay' : 'Place Order', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                 ),
               ),
 
