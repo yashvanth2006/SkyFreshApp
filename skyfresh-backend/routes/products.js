@@ -3,10 +3,24 @@ const router = express.Router();
 const Product = require('../models/Product');
 const { requireAuth, requireAdmin } = require('./auth');
 
-// Public route: Everyone can view products
+// Public route: Everyone can view products (Now supports Search & Category filters!)
 router.get('/', async (req, res) => {
   try {
-    const products = await Product.find();
+    const { search, category } = req.query;
+    let query = {};
+
+    // 1. Filter by category (if provided)
+    if (category && category !== 'All') {
+      query.category = category;
+    }
+
+    // 2. Filter by search term (if provided) - Case insensitive
+    if (search) {
+      query.name = { $regex: search, $options: 'i' };
+    }
+
+    // 3. Fetch products based on the built query
+    const products = await Product.find(query);
     res.json({ success: true, products });
   } catch (err) {
     res.json({ success: false, message: err.message });

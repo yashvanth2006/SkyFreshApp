@@ -87,15 +87,33 @@ class ApiService {
     }
   }
 
-  static Future<List<dynamic>> getProducts() async {
+  // UPDATED: Now accepts optional search and category parameters
+  static Future<List<dynamic>> getProducts({String? search, String? category}) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/products'));
+      Map<String, String> queryParams = {};
+      
+      if (search != null && search.isNotEmpty) {
+        queryParams['search'] = search;
+      }
+      if (category != null && category.isNotEmpty && category != 'All') {
+        queryParams['category'] = category;
+      }
+
+      String queryString = Uri(queryParameters: queryParams).query;
+      String url = '$baseUrl/products';
+      if (queryString.isNotEmpty) {
+        url += '?$queryString'; 
+      }
+
+      final response = await http.get(Uri.parse(url));
       final data = jsonDecode(response.body);
+      
       if (data['success'] == true) {
         return data['products'];
       }
       return [];
     } catch (e) {
+      print('Error fetching products: $e');
       return [];
     }
   }
