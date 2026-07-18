@@ -46,11 +46,11 @@ MongoDB (Local instance or MongoDB Atlas URI)
 1. Backend Setup
 Navigate to the backend directory:
 
-Bash
+
 cd backend
 Install dependencies:
 
-Bash
+
 npm install
 Create a .env file in the root of the backend directory and configure your environment variables:
 
@@ -60,14 +60,14 @@ MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
 Start the server:
 
-Bash
+
 npm run dev
 # or
 node server.js
 2. Frontend Setup
 Navigate to the Flutter app directory:
 
-Bash
+
 cd skyfresh
 Fetch the Flutter packages:
 
@@ -78,8 +78,10 @@ Open lib/api_service.dart and ensure the base URL points to your local machine's
 
 Run the app:
 
-Bash
+
 flutter run
+
+
 📁 Project Structure
 Frontend (/lib)
 /models: Data models (e.g., user_profile.dart)
