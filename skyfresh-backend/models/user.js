@@ -6,6 +6,16 @@ const userSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  // ==============================
+  // NEW: Added Email Field
+  // ==============================
+  email: { 
+    type: String,
+    unique: true,
+    sparse: true, // Allows phone-only users to exist without an email
+    trim: true,
+    lowercase: true
+  },
   phone: {
     type: String,
     required: true,
