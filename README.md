@@ -1,104 +1,276 @@
-🌿 SkyFresh
-SkyFresh is a premium full-stack e-commerce application designed for purchasing fresh fruits, juices, and fresh cuts. It features a modern, highly responsive Flutter frontend and a fast, scalable Node.js/Express backend powered by MongoDB.
+🌿 SkyFresh E-Commerce & Fresh Produce App
+A centralized full-stack mobile application designed to digitize premium grocery shopping, replacing traditional local shopping with a secure, highly responsive digital platform.
+The system enables users to browse fresh produce, manage their cart, filter items in real-time, maintain delivery addresses, and track order history through a unified mobile interface.
 
 ✨ Features
-Premium User Interface: A beautiful, responsive Flutter UI with custom animations, skeleton loaders, and intuitive navigation.
+🔐 Authentication & Authorization
+Secure JWT-based authentication
 
-Server-Side Search & Filtering: Case-insensitive, debounced real-time search and category filtering to minimize local processing and reduce data usage.
+Protected API routes
 
-Cart & State Management: Seamless cart additions and total calculations managed via Provider.
+Persistent login sessions via SharedPreferences
 
-User Profiles: Authenticated user profiles with order history and address management.
+OTP verification support (Backend ready)
 
-AI Integration: A dedicated AI screen for smart, personalized shopping assistance.
+👥 User Roles
+👑 Administrator (Backend)
+Manage user profiles
 
-🛠️ Tech Stack
-Frontend (Mobile App)
-Framework: Flutter / Dart
+Manage product catalog (Fruits, Juices, Fresh Cuts)
 
-State Management: Provider
+View operational dashboards and sales analytics
 
-Local Storage: Shared Preferences
+Monitor order fulfillments
 
-API Integration: Standard Dart http package
+👤 Customer (Mobile App)
+Update profile and addresses
+
+Browse curated product catalogs
+
+Search and filter items in real-time
+
+Manage shopping cart and quantities
+
+Place orders and view history
+
+Interact with AI Shopping Assistant
+
+📊 Modules
+User Authentication & Registration
+
+Driver/Delivery Profile (Extensible)
+
+Product Catalog & Real-time Search
+
+Category Filtering
+
+Cart & State Management
+
+Order Management
+
+Address Management
+
+AI Assistant Interface
+
+Notifications Interface
+
+User Profile Dashboard
+
+🛠 Tech Stack
+Frontend (Mobile)
+
+Flutter
+
+Dart
+
+Provider (State Management)
+
+SharedPreferences
+
+HTTP (API Integration)
+
+Material Design Theme
 
 Backend (Server)
-Environment: Node.js
-
-Framework: Express.js
-
-Database: MongoDB
-
-ODM: Mongoose
-
-🚀 Getting Started
-Follow these instructions to set up the project locally on your machine.
-
-Prerequisites
-Ensure you have the following installed:
-
-Flutter SDK
 
 Node.js
 
-MongoDB (Local instance or MongoDB Atlas URI)
+Express.js
 
-1. Backend Setup
-Navigate to the backend directory:
+MongoDB
 
+Mongoose
 
-cd backend
-Install dependencies:
+JWT Authentication
 
+bcrypt
 
-npm install
-Create a .env file in the root of the backend directory and configure your environment variables:
+Cors
 
-Code snippet
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_key
-Start the server:
-
-
-npm run dev
-# or
-node server.js
-2. Frontend Setup
-Navigate to the Flutter app directory:
-
-
-cd skyfresh
-Fetch the Flutter packages:
-
-Bash
-flutter pub get
-Update the API Base URL:
-Open lib/api_service.dart and ensure the base URL points to your local machine's IP address (if testing on a physical device) or localhost/10.0.2.2 (if using an emulator).
-
-Run the app:
-
-
-flutter run
-
+Dotenv
 
 📁 Project Structure
-Frontend (/lib)
-/models: Data models (e.g., user_profile.dart)
+Plaintext
+SkyFresh/
+│
+├── backend/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── server.js
+│   ├── package.json
+│   └── .env.example
+│
+├── frontend (Flutter)/
+│   ├── android/
+│   ├── ios/
+│   ├── lib/
+│   │   ├── models/
+│   │   ├── screens/
+│   │   ├── api_service.dart
+│   │   ├── cart_provider.dart
+│   │   ├── theme.dart
+│   │   └── main.dart
+│   ├── pubspec.yaml
+│   └── README.md
+│
+└── README.md
+⚙️ Prerequisites
+Before running the application, ensure the following are installed:
 
-/screens: UI screens (home_screen.dart, cart_screen.dart, profile_screen.dart, etc.)
+Flutter SDK
 
-api_service.dart: Handles all HTTP requests to the backend.
+Node.js (v18 or later recommended)
 
-cart_provider.dart: Global state management for the shopping cart.
+npm
 
-theme.dart: Centralized app styling, colors, and gradients.
+MongoDB (Local or Atlas)
+
+Android Studio / Xcode (for mobile emulators)
+
+🚀 Installation
+1. Clone Repository
+
+Bash
+git clone <repository-url>
+cd SkyFresh
+2. Install Backend Dependencies
+
+Bash
+cd backend
+npm install
+3. Install Frontend Dependencies
+
+Bash
+cd ../frontend
+flutter pub get
+🔧 Environment Configuration
+Both frontend and backend require environment configuration.
 
 Backend
-/controllers: Logic for handling incoming requests (auth, products, users).
 
-/models: Mongoose database schemas.
+Bash
+cd backend
+cp .env.example .env
+Fill in your MONGO_URI, PORT, and JWT_SECRET.
 
-/routes: Express route definitions.
+Frontend
 
-server.js: Application entry point.
+Open lib/api_service.dart.
+
+Update the baseUrl to point to your local machine (e.g., [http://10.0.2.2:5000/api](http://10.0.2.2:5000/api) for Android emulators, or your local IP for physical devices).
+
+Do not commit your .env files to version control.
+
+▶️ Running the Project
+Backend
+
+Bash
+cd backend
+npm run dev
+Frontend
+
+Bash
+cd frontend
+flutter run
+📦 Available Scripts
+Frontend (Flutter)
+
+flutter run - Runs the application on a connected device/emulator.
+
+flutter build apk - Creates a production Android build.
+
+flutter build ios - Creates a production iOS build.
+
+flutter clean - Clears the build cache.
+
+Backend (Node.js)
+
+npm run dev - Starts the backend server with nodemon.
+
+npm start - Starts the backend server in production mode.
+
+🔐 Security Features
+JWT Authentication
+
+Password Hashing using bcrypt
+
+Protected API Routes
+
+Server-side query sanitization (MongoDB $regex)
+
+Environment Variable Configuration
+
+CORS Protection
+
+📱 Mobile Architecture
+The frontend leverages Flutter's cross-platform capabilities, utilizing Provider for reactive state management (Cart UI updates instantly) and debounced search inputs to optimize backend API calls.
+
+📈 Core Functionalities
+Real-time debounced product search
+
+Server-side category filtering
+
+Persistent shopping cart
+
+Secure checkout and order placement
+
+Dynamic address book
+
+Skeleton loaders for seamless UI/UX
+
+🧪 Development Workflow
+Start MongoDB
+
+Configure environment variables
+
+Start backend Express server
+
+Launch iOS/Android emulator
+
+Start Flutter frontend
+
+Login or register as a premium member
+
+Access full-stack cart and checkout modules
+
+🚀 Future Enhancements
+Payment Gateway Integration (Stripe/Razorpay)
+
+Real-time Delivery Tracking (WebSockets)
+
+Push Notifications (Firebase Cloud Messaging)
+
+Admin Web Panel (React.js)
+
+Email/SMS Order Confirmations
+
+Advanced Sales Analytics
+
+🤝 Contributing
+Fork the repository
+
+Create a feature branch:
+
+Bash
+git checkout -b feature/new-feature
+Commit your changes:
+
+Bash
+git commit -m "Add new feature"
+Push the branch:
+
+Bash
+git push origin feature/new-feature
+Open a Pull Request  
+
+📄 License  
+This project is intended for educational and commercial use. Add an appropriate license if you plan to distribute it publicly.  
+
+👨‍💻 Author  
+Your Name/Handle
+Full Stack Mobile Developer
+Flutter | Node.js | Express.js | MongoDB  
+
+⭐ If you found this project useful, consider giving it a star on GitHub.
