@@ -6,6 +6,7 @@ const Products = () => {
   const [error, setError] = useState(null);
 
   // Form State
+  const [editingId, setEditingId] = useState(null); // Tracks if we are editing
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [unit, setUnit] = useState('1 kg');
@@ -47,31 +48,76 @@ const Products = () => {
     fetchProducts();
   }, []);
 
-  // Handle adding a new product to the database
-  const handleAddProduct = async (e) => {
+  // Helper to reset the form
+  const resetForm = () => {
+    setEditingId(null);
+    setName('');
+    setPrice('');
+    setUnit('1 kg');
+    setEmoji('🍎');
+    setCategory('Fruits');
+    setStock(50);
+    setColor('#FFF3CD');
+  };
+
+  // Handle adding or updating a product
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newProduct = { name, price: Number(price), unit, emoji, category, stock: Number(stock), color };
+    const productData = { name, price: Number(price), unit, emoji, category, stock: Number(stock), color };
 
-    try {
-      const response = await fetch(`${API_URL}/add`, {
-        method: 'POST',
-        headers: getAdminHeaders(),
-        body: JSON.stringify(newProduct),
-      });
-      const data = await response.json();
+    if (editingId) {
+      // UPDATE EXISTING PRODUCT (PUT)
+      try {
+        const response = await fetch(`${API_URL}/${editingId}`, {
+          method: 'PUT',
+          headers: getAdminHeaders(),
+          body: JSON.stringify(productData),
+        });
+        const data = await response.json();
 
-      if (data.success) {
-        setProducts([...products, data.product]);
-        // Reset dynamic form elements
-        setName('');
-        setPrice('');
-        alert('🌿 Product added to catalog successfully!');
-      } else {
-        alert(`Failed to add product: ${data.message}`);
+        if (data.success) {
+          setProducts(products.map(p => p._id === editingId ? data.product : p));
+          resetForm();
+          alert('🌿 Product updated successfully!');
+        } else {
+          alert(`Failed to update product: ${data.message}`);
+        }
+      } catch (err) {
+        alert('Error connecting to backend.');
       }
-    } catch (err) {
-      alert('Error connecting to backend.');
+    } else {
+      // ADD NEW PRODUCT (POST)
+      try {
+        const response = await fetch(`${API_URL}/add`, {
+          method: 'POST',
+          headers: getAdminHeaders(),
+          body: JSON.stringify(productData),
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          setProducts([...products, data.product]);
+          resetForm();
+          alert('🌿 Product added to catalog successfully!');
+        } else {
+          alert(`Failed to add product: ${data.message}`);
+        }
+      } catch (err) {
+        alert('Error connecting to backend.');
+      }
     }
+  };
+
+  // Populate form with product data when "Edit" is clicked
+  const handleEditClick = (product) => {
+    setEditingId(product._id);
+    setName(product.name);
+    setPrice(product.price);
+    setUnit(product.unit);
+    setEmoji(product.emoji);
+    setCategory(product.category);
+    setStock(product.stock);
+    setColor(product.color || '#FFF3CD');
   };
 
   // Handle removing a product from the database
@@ -102,9 +148,9 @@ const Products = () => {
     <div style={{ padding: '20px' }}>
       <h2>Inventory Management Dashboard</h2>
       
-      {/* Add Product Form */}
-      <form onSubmit={handleAddProduct} style={{ background: '#f4f4f4', padding: '20px', borderRadius: '8px', marginBottom: '30px' }}>
-        <h3>Add New Fresh Item</h3>
+      {/* Add / Update Product Form */}
+      <form onSubmit={handleSubmit} style={{ background: '#f4f4f4', padding: '20px', borderRadius: '8px', marginBottom: '30px' }}>
+        <h3>{editingId ? 'Edit Product' : 'Add New Fresh Item'}</h3>
         <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
           <input type="text" placeholder="Product Name" value={name} onChange={e => setName(e.target.value)} required style={{ padding: '8px', flex: 1 }} />
           <input type="number" placeholder="Price (₹)" value={price} onChange={e => setPrice(e.target.value)} required style={{ padding: '8px', width: '120px' }} />
@@ -120,7 +166,17 @@ const Products = () => {
             <option value="Juices">Juices</option>
             <option value="Fresh Cuts">Fresh Cuts</option>
           </select>
-          <button type="submit" style={{ padding: '8px 20px', background: '#2e7d32', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Save Product</button>
+          
+          <button type="submit" style={{ padding: '8px 20px', background: editingId ? '#1976d2' : '#2e7d32', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            {editingId ? 'Update Product' : 'Save Product'}
+          </button>
+          
+          {/* Show a Cancel button if we are in edit mode */}
+          {editingId && (
+            <button type="button" onClick={resetForm} style={{ padding: '8px 20px', background: '#757575', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+              Cancel
+            </button>
+          )}
         </div>
       </form>
 
@@ -147,7 +203,8 @@ const Products = () => {
                 <td style={{ padding: '12px' }}>{product.category}</td>
                 <td style={{ padding: '12px' }}>₹{product.price}</td>
                 <td style={{ padding: '12px' }}>{product.stock} units</td>
-                <td style={{ padding: '12px' }}>
+                <td style={{ padding: '12px', display: 'flex', gap: '8px' }}>
+                  <button onClick={() => handleEditClick(product)} style={{ background: '#1976d2', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}>Edit</button>
                   <button onClick={() => handleDeleteProduct(product._id)} style={{ background: '#d32f2f', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}>Remove</button>
                 </td>
               </tr>
