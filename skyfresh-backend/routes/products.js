@@ -24,6 +24,25 @@ router.post('/add', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+// Protected Route: Only Admins can update an existing product
+router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const updatedProduct = await Product.findByIdAndUpdate(
+      req.params.id, 
+      req.body, 
+      { new: true, runValidators: true } // Returns the updated document and runs schema validations
+    );
+    
+    if (!updatedProduct) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+    
+    res.json({ success: true, product: updatedProduct, message: 'Product successfully updated.' });
+  } catch (err) {
+    res.json({ success: false, message: err.message });
+  }
+});
+
 // Protected Route: Only Admins can remove items from catalog
 router.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
