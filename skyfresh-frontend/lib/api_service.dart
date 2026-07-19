@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skyfresh/models/user_profile.dart';
 
 class ApiService {
-  static const String baseUrl = "http://localhost:5000/api";
+  static const String baseUrl = "http://10.17.145.53:5000/api";
 
   // ── REGISTER
   static Future<Map<String, dynamic>> register({
