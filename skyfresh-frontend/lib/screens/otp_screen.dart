@@ -27,10 +27,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
     setState(() => _loading = true);
 
-    final result = await ApiService.verifyOtp(
-      phone: widget.phone,
-      otp: _otp,
-    );
+    final result = await ApiService.verifyOtp(widget.phone, _otp);
 
     setState(() => _loading = false);
     if (!mounted) return;

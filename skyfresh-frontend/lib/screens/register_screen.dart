@@ -30,10 +30,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
 
-    final result = await ApiService.register(
-      name: _nameCtrl.text.trim(),
-      phone: _phoneCtrl.text.trim(),
-      password: _passCtrl.text,
+    final result = await ApiService.registerUser(
+      _nameCtrl.text.trim(),
+      _phoneCtrl.text.trim(),
+      _passCtrl.text,
     );
 
     setState(() => _loading = false);
