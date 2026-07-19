@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:skyfresh/models/user_profile.dart';
+import 'package:skyfresh/models/user_profile.dart'; 
 
 class ApiService {
   static const String baseUrl = 'http://localhost:5000/api';
@@ -87,6 +87,7 @@ class ApiService {
     }
   }
 
+  // UPDATED: Now accepts optional search and category parameters
   static Future<List<dynamic>> getProducts({String? search, String? category}) async {
     try {
       Map<String, String> queryParams = {};
@@ -134,6 +135,7 @@ class ApiService {
     }
   }
 
+  // FIXED: Added "String? line" to the parameters and the fallback map!
   static Future<Map<String, dynamic>> addAddress({
     Map<String, dynamic>? addressData,
     String? address,
