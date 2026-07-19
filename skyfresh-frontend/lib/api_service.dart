@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skyfresh/models/user_profile.dart';
 
 class ApiService {
+<<<<<<< ai
   static const String baseUrl = "http://localhost:5000/api";
 
   // ── REGISTER
@@ -14,6 +15,63 @@ class ApiService {
   }) async {
     try {
       final res = await http.post(
+=======
+  static const String baseUrl = 'http://10.17.145.53:5000/api';
+
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_token');
+  }
+
+  static Future<bool> isLoggedIn() async {
+    final token = await getToken();
+    return token != null && token.isNotEmpty;
+  }
+
+  static Future<Map<String, dynamic>> googleLogin(String idToken) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/google-login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'idToken': idToken}),
+      );
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['token'] != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_token', data['token']);
+      }
+      return data;
+    } catch (e) {
+      return {'success': false, 'message': 'Google login connection failed'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> login({String? phone, String? password}) async {
+    try {
+      print('Attempting login to: $baseUrl/auth/login');
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phone': phone ?? '', 'password': password ?? ''}),
+      );
+      print('Login response status: ${response.statusCode}');
+      print('Login response body: ${response.body}');
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['token'] != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_token', data['token']);
+      }
+      return data;
+    } catch (e) {
+      print('Login error: $e');
+      return {'success': false, 'message': 'Login connection failed: $e'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> registerUser(String name, String phone, String password) async {
+    try {
+      final response = await http.post(
+>>>>>>> local
         Uri.parse('$baseUrl/auth/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'name': name, 'phone': phone, 'password': password}),

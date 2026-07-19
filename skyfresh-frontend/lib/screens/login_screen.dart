@@ -3,6 +3,7 @@ import 'package:skyfresh/api_service.dart';
 import 'package:skyfresh/theme.dart';
 import 'register_screen.dart';
 import 'package:skyfresh/screens/home_screen.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passCtrl  = TextEditingController();
   bool _obscure = true;
   bool _loading = false;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   @override
   void dispose() {
@@ -49,6 +51,45 @@ class _LoginScreenState extends State<LoginScreen> {
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.redAccent,
         content: Text(result['message'] ?? 'Login failed', style: const TextStyle(color: Colors.white))));
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _loading = true);
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      
+      if (googleUser == null) {
+        setState(() => _loading = false);
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final result = await ApiService.googleLogin(googleAuth.idToken ?? '');
+
+      setState(() => _loading = false);
+      if (!mounted) return;
+
+      if (result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppTheme.primaryDark,
+          content: const Text('Welcome to SKYfresh! 🌿', style: TextStyle(color: Colors.white))));
+        Navigator.pushAndRemoveUntil(context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (route) => false);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.redAccent,
+          content: Text(result['message'] ?? 'Google login failed', style: const TextStyle(color: Colors.white))));
+      }
+    } catch (e) {
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.redAccent,
+        content: Text('Google sign-in error: $e', style: const TextStyle(color: Colors.white))));
     }
   }
 
@@ -162,6 +203,48 @@ class _LoginScreenState extends State<LoginScreen> {
                             : const Text('Sign In',
                                 style: TextStyle(color: Colors.white, fontSize: 17,
                                     fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Google Sign-In Button
+                    GestureDetector(
+                      onTap: _loading ? null : _handleGoogleSignIn,
+                      child: Container(
+                        width: double.infinity, height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: AppTheme.border),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10, offset: const Offset(0, 4)
+                            )
+                          ],
+                        ),
+                        child: Center(
+                          child: _loading
+                            ? const SizedBox(width: 24, height: 24,
+                                child: CircularProgressIndicator(color: AppTheme.primary, strokeWidth: 2.5))
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(Icons.g_mobiledata, color: Colors.red, size: 20),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Sign in with Google',
+                                      style: TextStyle(color: AppTheme.textMain, fontSize: 16,
+                                          fontWeight: FontWeight.w600)),
+                                ],
+                              ),
                         ),
                       ),
                     ),

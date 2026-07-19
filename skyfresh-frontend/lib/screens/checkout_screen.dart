@@ -6,6 +6,13 @@ import 'package:skyfresh/api_service.dart';
 import 'package:skyfresh/models/user_profile.dart';
 import 'package:skyfresh/screens/order_success_screen.dart';
 
+<<<<<<< ai
+=======
+// Web imports
+// import 'dart:html' as html;
+// import 'dart:js' as js;
+
+>>>>>>> local
 class CheckoutScreen extends StatefulWidget {
   final int subtotal;
   final int deliveryFee;
@@ -84,6 +91,144 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return parts.where((p) => p.trim().isNotEmpty).join(', ');
   }
 
+<<<<<<< ai
+=======
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    setState(() => _processingPayment = false);
+    _placeOrder();
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    setState(() => _processingPayment = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Payment failed: ${response.message}')),
+    );
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('External wallet selected: ${response.walletName}')),
+    );
+  }
+
+  void _openRazorpay() {
+    final cart = context.read<CartProvider>();
+    if (cart.items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cart is empty')));
+      return;
+    }
+
+    if (_savedAddresses.isEmpty && !_formKey.currentState!.validate()) return;
+
+    setState(() => _processingPayment = true);
+
+    if (kIsWeb) {
+      // _openRazorpayWeb();
+    } else {
+      _openRazorpayMobile();
+    }
+  }
+
+  void _openRazorpayMobile() {
+    var options = {
+      'key': 'rzp_test_TEbkIK2Vtv3aJO',
+      'amount': widget.grandTotal * 100,
+      'name': 'SKYfresh',
+      'description': 'Fresh fruits and juices',
+      'prefill': {
+        'contact': _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text : '',
+        'email': '',
+      },
+      'external': {
+        'wallets': ['paytm']
+      },
+      'modal': {
+        'confirm_close': true,
+        'escape': true,
+      },
+      'theme': {
+        'color': '#4CAF50'
+      }
+    };
+
+    try {
+      print('Opening Razorpay Mobile with options: $options');
+      _razorpay.open(options);
+      Future.delayed(const Duration(seconds: 30), () {
+        if (mounted && _processingPayment) {
+          setState(() => _processingPayment = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment timeout. Please try again.')),
+          );
+        }
+      });
+    } catch (e) {
+      print('Error opening Razorpay Mobile: $e');
+      setState(() => _processingPayment = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error opening Razorpay: $e')),
+      );
+    }
+  }
+
+  // void _openRazorpayWeb() {
+  //   try {
+  //     var options = js.JsObject.jsify({
+  //       'key': 'rzp_test_TEbkIK2Vtv3aJO',
+  //       'amount': widget.grandTotal * 100,
+  //       'name': 'SKYfresh',
+  //       'description': 'Fresh fruits and juices',
+  //       'prefill': {
+  //         'contact': _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text : '',
+  //         'email': '',
+  //       },
+  //       'theme': {
+  //         'color': '#4CAF50'
+  //       },
+  //       'handler': (response) {
+  //         print('Payment success: $response');
+  //         setState(() => _processingPayment = false);
+  //         _placeOrder();
+  //       },
+  //       'modal': {
+  //         'ondismiss': () {
+  //           print('Payment modal dismissed');
+  //           setState(() => _processingPayment = false);
+  //         }
+  //       }
+  //     });
+  //
+  //     // Call Razorpay via JS
+  //     var razorpay = js.context['Razorpay'];
+  //     if (razorpay != null) {
+  //       _razorpayWebInstance = js.JsObject(razorpay, [options]);
+  //       _razorpayWebInstance.callMethod('open');
+  //       
+  //       Future.delayed(const Duration(seconds: 30), () {
+  //         if (mounted && _processingPayment) {
+  //           setState(() => _processingPayment = false);
+  //           ScaffoldMessenger.of(context).showSnackBar(
+  //             const SnackBar(content: Text('Payment timeout. Please try again.')),
+  //           );
+  //         }
+  //       });
+  //     } else {
+  //       print('Razorpay JS not loaded');
+  //       setState(() => _processingPayment = false);
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text('Razorpay not available. Please try again.')),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print('Error opening Razorpay Web: $e');
+  //     setState(() => _processingPayment = false);
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Error opening Razorpay: $e')),
+  //     );
+  //   }
+  // }
+
+>>>>>>> local
   Future<void> _placeOrder() async {
     if (_savedAddresses.isEmpty && !_formKey.currentState!.validate()) return;
     final cart = context.read<CartProvider>();
