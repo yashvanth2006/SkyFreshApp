@@ -1,12 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:skyfresh/cart_provider.dart';
 import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/api_service.dart';
 import 'package:skyfresh/models/user_profile.dart';
 import 'package:skyfresh/screens/order_success_screen.dart';
+
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'dart:js' as js;
 
 class CheckoutScreen extends StatefulWidget {
   final int subtotal;
@@ -32,6 +34,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _countryCtrl = TextEditingController(text: 'India');
 
   late Razorpay _razorpay;
+  dynamic _razorpayWebInstance;
   bool _placing = false;
   bool _processingPayment = false;
   bool _addressesLoading = true;
@@ -42,7 +45,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb) {
+    if (kIsWeb) {
+      // Web: Razorpay JS will be initialized when needed
+    } else {
+      // Mobile: Initialize Razorpay Flutter plugin
       _razorpay = Razorpay();
       _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
       _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
@@ -102,10 +108,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _placeOrder();
   }
 
+  void _handlePaymentSuccessWeb(dynamic response) {
+    setState(() => _processingPayment = false);
+    _placeOrder();
+  }
+
   void _handlePaymentError(PaymentFailureResponse response) {
     setState(() => _processingPayment = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Payment failed: ${response.code} - ${response.message}')),
+    );
+  }
+
+  void _handlePaymentErrorWeb(String error) {
+    setState(() => _processingPayment = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Payment failed: $error')),
     );
   }
 
@@ -127,11 +145,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _processingPayment = true);
 
     if (kIsWeb) {
-      setState(() => _processingPayment = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Web payment coming soon. Using COD instead.')),
-      );
-      _placeOrder();
+      _openRazorpayWeb();
     } else {
       _openRazorpayMobile();
     }
@@ -178,6 +192,64 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
     }
   }
+
+  void _openRazorpayWeb() {
+    try {
+      var options = js.JsObject.jsify({
+        'key': 'rzp_test_TEbkIK2Vtv3aJO',
+        'amount': widget.grandTotal * 100,
+        'name': 'SKYfresh',
+        'description': 'Fresh fruits and juices',
+        'prefill': {
+          'contact': _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text : '',
+          'email': '',
+        },
+        'theme': {
+          'color': '#4CAF50'
+        },
+        'handler': (response) {
+          print('Payment success: $response');
+          setState(() => _processingPayment = false);
+          _placeOrder();
+        },
+        'modal': {
+          'ondismiss': () {
+            print('Payment modal dismissed');
+            setState(() => _processingPayment = false);
+          }
+        }
+      });
+
+      // Call Razorpay via JS
+      var razorpay = js.context['Razorpay'];
+      if (razorpay != null) {
+        _razorpayWebInstance = js.JsObject(razorpay, [options]);
+        _razorpayWebInstance.callMethod('open');
+        
+        Future.delayed(const Duration(seconds: 30), () {
+          if (mounted && _processingPayment) {
+            setState(() => _processingPayment = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Payment timeout. Please try again.')),
+            );
+          }
+        });
+      } else {
+        print('Razorpay JS not loaded');
+        setState(() => _processingPayment = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Razorpay not available. Please try again.')),
+        );
+      }
+    } catch (e) {
+      print('Error opening Razorpay Web: $e');
+      setState(() => _processingPayment = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error opening Razorpay: $e')),
+      );
+    }
+  }
+
 
   Future<void> _placeOrder() async {
     if (_savedAddresses.isEmpty && !_formKey.currentState!.validate()) return;
