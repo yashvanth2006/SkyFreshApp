@@ -1,103 +1,136 @@
-import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skyfresh/models/user_profile.dart';
 
 class ApiService {
-  static const String baseUrl = "http://10.17.145.53:5000/api";
+  static const String baseUrl = kIsWeb 
+    ? 'http://localhost:5000/api' 
+    : 'http://10.17.145.53:5000/api';
 
-  // ── REGISTER
-  static Future<Map<String, dynamic>> register({
-    required String name,
-    required String phone,
-    required String password,
-  }) async {
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_token');
+  }
+
+  static Future<bool> isLoggedIn() async {
+    final token = await getToken();
+    return token != null && token.isNotEmpty;
+  }
+
+  static Future<Map<String, dynamic>> login({String? phone, String? password}) async {
     try {
-      final res = await http.post(
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phone': phone ?? '', 'password': password ?? ''}),
+      );
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['token'] != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_token', data['token']);
+      }
+      return data;
+    } catch (e) {
+      return {'success': false, 'message': 'Login connection failed'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> registerUser(String name, String phone, String password) async {
+    try {
+      final response = await http.post(
         Uri.parse('$baseUrl/auth/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'name': name, 'phone': phone, 'password': password}),
       );
-      return jsonDecode(res.body);
+      return jsonDecode(response.body);
     } catch (e) {
-      return {'success': false, 'message': 'Cannot connect to server.'};
+      return {'success': false, 'message': 'Registration connection failed'};
     }
   }
 
-  // ── VERIFY OTP
-  static Future<Map<String, dynamic>> verifyOtp({
-    required String phone,
-    required String otp,
-  }) async {
+  static Future<Map<String, dynamic>> verifyOtp(String phone, String otp) async {
     try {
-      final res = await http.post(
+      final response = await http.post(
         Uri.parse('$baseUrl/auth/verify-otp'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'phone': phone, 'otp': otp}),
       );
-      final data = jsonDecode(res.body);
-      if (data['success'] == true) {
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['token'] != null) {
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', data['token']);
-        await prefs.setString('userName', data['user']['name']);
-        await prefs.setString('userPhone', data['user']['phone']);
+        await prefs.setString('user_token', data['token']);
       }
       return data;
     } catch (e) {
-      return {'success': false, 'message': 'Cannot connect to server.'};
+      return {'success': false, 'message': 'Verification connection failed'};
     }
   }
 
-  // ── RESEND OTP
-  static Future<Map<String, dynamic>> resendOtp({
-    required String phone,
-  }) async {
-    try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/auth/resend-otp'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': phone}),
-      );
-      return jsonDecode(res.body);
-    } catch (e) {
-      return {'success': false, 'message': 'Cannot connect to server.'};
-    }
+  static Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_token');
   }
 
-  // ── LOGIN
-  static Future<Map<String, dynamic>> login({
-    required String phone,
-    required String password,
-  }) async {
+  static Future<UserProfile?> getProfile() async {
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': phone, 'password': password}),
+      final token = await getToken();
+      final response = await http.get(
+        Uri.parse('$baseUrl/auth/me'),
+        headers: {'Authorization': 'Bearer $token'},
       );
-      final data = jsonDecode(res.body);
+      final data = jsonDecode(response.body);
       if (data['success'] == true) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', data['token']);
-        await prefs.setString('userName', data['user']['name']);
-        await prefs.setString('userPhone', data['user']['phone']);
+        return UserProfile.fromJson(data['user'] ?? data);
       }
-      return data;
+      return null;
     } catch (e) {
-      return {'success': false, 'message': 'Cannot connect to server.'};
+      return null;
     }
   }
 
-  // ── GET PRODUCTS
-  static Future<List<Map<String, dynamic>>> getProducts() async {
+  // UPDATED: Now accepts optional search and category parameters
+  static Future<List<dynamic>> getProducts({String? search, String? category}) async {
     try {
-      final res = await http.get(
-        Uri.parse('$baseUrl/products'),
-        headers: {'Content-Type': 'application/json'},
-      );
-      final data = jsonDecode(res.body);
+      Map<String, String> queryParams = {};
+      
+      if (search != null && search.isNotEmpty) {
+        queryParams['search'] = search;
+      }
+      if (category != null && category.isNotEmpty && category != 'All') {
+        queryParams['category'] = category;
+      }
+
+      String queryString = Uri(queryParameters: queryParams).query;
+      String url = '$baseUrl/products';
+      if (queryString.isNotEmpty) {
+        url += '?$queryString'; 
+      }
+
+      final response = await http.get(Uri.parse(url));
+      final data = jsonDecode(response.body);
+      
       if (data['success'] == true) {
-        return List<Map<String, dynamic>>.from(data['products']);
+        return data['products'];
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching products: $e');
+      return [];
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getMyOrders() async {
+    try {
+      final token = await getToken();
+      final response = await http.get(
+        Uri.parse('$baseUrl/orders/my'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['orders'] != null) {
+        return List<Map<String, dynamic>>.from(data['orders']);
       }
       return [];
     } catch (e) {
@@ -105,23 +138,80 @@ class ApiService {
     }
   }
 
-  // ── PLACE ORDER
+  // FIXED: Added "String? line" to the parameters and the fallback map!
+  static Future<Map<String, dynamic>> addAddress({
+    Map<String, dynamic>? addressData,
+    String? address,
+    String? addressLine,
+    String? line, 
+    String? title,
+    String? label, 
+    String? name,
+    String? landmark,
+    bool? isDefault,
+  }) async {
+    try {
+      final token = await getToken();
+      final Map<String, dynamic> finalBody = addressData ?? {
+        'label': label ?? title ?? 'Home',
+        'line': line ?? address ?? addressLine ?? '',
+        'isDefault': isDefault,
+      };
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/addresses'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(finalBody),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to add address'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> setDefaultAddress(String addressId) async {
+    try {
+      final token = await getToken();
+      final response = await http.patch(
+        Uri.parse('$baseUrl/auth/addresses/$addressId/default'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to set default address'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteAddress(String addressId) async {
+    try {
+      final token = await getToken();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/auth/addresses/$addressId'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to delete address'};
+    }
+  }
+
   static Future<Map<String, dynamic>> placeOrder({
     required List<Map<String, dynamic>> items,
-    required int subtotal,
-    required int deliveryFee,
-    required int total,
+    required num subtotal,
+    required num deliveryFee,
+    required num total,
     required String address,
-    String? paymentMethod,
+    String? paymentMethod, 
   }) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null || token.isEmpty) {
-        return {'success': false, 'message': 'Please log in again.'};
-      }
-
-      final res = await http.post(
+      final token = await getToken();
+      final response = await http.post(
         Uri.parse('$baseUrl/orders'),
         headers: {
           'Content-Type': 'application/json',
@@ -133,163 +223,12 @@ class ApiService {
           'deliveryFee': deliveryFee,
           'total': total,
           'address': address,
-          if (paymentMethod != null) 'paymentMethod': paymentMethod,
+          'paymentMethod': paymentMethod ?? 'Cash on Delivery',
         }),
       );
-      return jsonDecode(res.body);
+      return jsonDecode(response.body);
     } catch (e) {
-      return {'success': false, 'message': 'Cannot connect to server.'};
+      return {'success': false, 'message': 'Order placement failed'};
     }
-  }
-
-  // ── GET MY ORDERS
-  static Future<List<Map<String, dynamic>>> getMyOrders() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null || token.isEmpty) return [];
-
-      final res = await http.get(
-        Uri.parse('$baseUrl/orders/my'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-      final data = jsonDecode(res.body);
-      if (data['success'] == true) {
-        return List<Map<String, dynamic>>.from(data['orders']);
-      }
-      return [];
-    } catch (e) {
-      return [];
-    }
-  }
-
-  // ── GET PROFILE
-  static Future<UserProfile?> getProfile() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null || token.isEmpty) return null;
-
-      final res = await http.get(
-        Uri.parse('$baseUrl/auth/me'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-      final data = jsonDecode(res.body);
-      if (data['success'] == true && data['user'] != null) {
-        final profile = UserProfile.fromJson(Map<String, dynamic>.from(data['user']));
-        await prefs.setString('userName', profile.name);
-        await prefs.setString('userPhone', profile.phone);
-        return profile;
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  // ── ADD ADDRESS
-  static Future<Map<String, dynamic>> addAddress({
-    required String line,
-    String label = 'Home',
-    bool isDefault = false,
-  }) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null || token.isEmpty) {
-        return {'success': false, 'message': 'Please log in again.'};
-      }
-
-      final res = await http.post(
-        Uri.parse('$baseUrl/auth/addresses'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({'label': label, 'line': line, 'isDefault': isDefault}),
-      );
-      return jsonDecode(res.body);
-    } catch (e) {
-      return {'success': false, 'message': 'Cannot connect to server.'};
-    }
-  }
-
-  // ── DELETE ADDRESS
-  static Future<Map<String, dynamic>> deleteAddress(String addressId) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null || token.isEmpty) {
-        return {'success': false, 'message': 'Please log in again.'};
-      }
-
-      final res = await http.delete(
-        Uri.parse('$baseUrl/auth/addresses/$addressId'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-      return jsonDecode(res.body);
-    } catch (e) {
-      return {'success': false, 'message': 'Cannot connect to server.'};
-    }
-  }
-
-  // ── SET DEFAULT ADDRESS
-  static Future<Map<String, dynamic>> setDefaultAddress(String addressId) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      if (token == null || token.isEmpty) {
-        return {'success': false, 'message': 'Please log in again.'};
-      }
-
-      final res = await http.patch(
-        Uri.parse('$baseUrl/auth/addresses/$addressId/default'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-      return jsonDecode(res.body);
-    } catch (e) {
-      return {'success': false, 'message': 'Cannot connect to server.'};
-    }
-  }
-
-  // ── CHECK SERVICEABILITY
-  static Future<Map<String, dynamic>> checkServiceability({
-    required double lat,
-    required double lng,
-  }) async {
-    try {
-      final res = await http.get(
-        Uri.parse('$baseUrl/serviceability/check?lat=$lat&lng=$lng'),
-        headers: {'Content-Type': 'application/json'},
-      );
-      return jsonDecode(res.body);
-    } catch (e) {
-      return {'serviceable': false, 'message': 'Cannot connect to server.'};
-    }
-  }
-
-  // ── LOGOUT
-  static Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-  }
-
-  // ── CHECK IF LOGGED IN
-  static Future<bool> isLoggedIn() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    return token != null && token.isNotEmpty;
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async'; // Added for search debouncing
 import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/cart_provider.dart';
 import 'package:skyfresh/api_service.dart';
@@ -28,7 +29,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategory = 0;
   int _currentTab = 0;
   final int _notifCount = 5;
+  
   String _search = '';
+  Timer? _debounce; // Added to prevent spamming API on every keystroke
+  
   List<Map<String, dynamic>> _products = [];
   bool _loading = true;
 
@@ -39,25 +43,17 @@ class _HomeScreenState extends State<HomeScreen> {
     {'name': 'Fresh Cuts', 'icon': '🍉'},
   ];
 
-  List<Map<String, dynamic>> get _filtered {
-    var list = _products;
-    if (_selectedCategory != 0) {
-      final cat = _categories[_selectedCategory]['name'];
-      list = list.where((p) => p['category'] == cat).toList();
-    }
-    if (_search.trim().isNotEmpty) {
-      final q = _search.trim().toLowerCase();
-      list = list.where((p) =>
-          p['name'].toString().toLowerCase().contains(q)).toList();
-    }
-    return list;
-  }
-
   @override
   void initState() {
     super.initState();
     _loadUser();
-    _loadProducts();
+    _fetchDynamicProducts(); // Initial load
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadUser() async {
@@ -96,9 +92,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _loadProducts() async {
+  // UPDATED: Now queries the backend with search and category filters
+  Future<void> _fetchDynamicProducts() async {
     setState(() => _loading = true);
-    final products = await ApiService.getProducts();
+    
+    final categoryName = _categories[_selectedCategory]['name'];
+    final products = await ApiService.getProducts(
+      search: _search, 
+      category: categoryName
+    );
+    
+    if (!mounted) return;
+
     setState(() {
       _products = products.map((p) => {
        'name':     p['name'],
@@ -111,6 +116,17 @@ class _HomeScreenState extends State<HomeScreen> {
        'image':    p['image'] ?? '',
       }).toList();
       _loading = false;
+    });
+  }
+
+  // Handle Search Input with Debounce
+  void _onSearchChanged(String query) {
+    setState(() => _search = query);
+    
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _fetchDynamicProducts();
     });
   }
 
@@ -316,7 +332,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: RefreshIndicator(
         color: AppTheme.primary,
         backgroundColor: AppTheme.surface,
-        onRefresh: _loadProducts,
+        onRefresh: _fetchDynamicProducts,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
@@ -363,7 +379,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         border: Border.all(color: AppTheme.border),
                       ),
                       child: TextField(
-                        onChanged: (v) => setState(() => _search = v),
+                        onChanged: _onSearchChanged,
+                        controller: TextEditingController.fromValue(
+                          TextEditingValue(
+                            text: _search,
+                            selection: TextSelection.collapsed(offset: _search.length),
+                          ),
+                        ),
                         style: const TextStyle(fontSize: 15, color: AppTheme.textMain),
                         decoration: InputDecoration(
                           hintText: 'Search premium fruits...',
@@ -372,7 +394,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           suffixIcon: _search.isNotEmpty
                             ? IconButton(
                                 icon: const Icon(Icons.close_rounded, color: AppTheme.textMuted, size: 20),
-                                onPressed: () => setState(() => _search = ''),
+                                onPressed: () {
+                                  _onSearchChanged('');
+                                  FocusScope.of(context).unfocus();
+                                },
                               )
                             : null,
                           border: InputBorder.none,
@@ -457,7 +482,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemBuilder: (_, i) {
                           final selected = i == _selectedCategory;
                           return GestureDetector(
-                            onTap: () => setState(() => _selectedCategory = i),
+                            onTap: () {
+                              setState(() => _selectedCategory = i);
+                              _fetchDynamicProducts(); // Trigger Backend Filter
+                            },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 250),
                               margin: const EdgeInsets.only(right: 12),
@@ -497,7 +525,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Text('Curated For You',
                       style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800,
                           letterSpacing: -0.3, color: AppTheme.textMain)),
-                    Text('${_filtered.length} items',
+                    Text('${_products.length} items',
                       style: const TextStyle(fontSize: 13, color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
                   ],
                 ),
@@ -517,7 +545,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 )
-              : _filtered.isEmpty
+              : _products.isEmpty
                 ? SliverToBoxAdapter(
                     child: Center(
                       child: Padding(
@@ -538,14 +566,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     sliver: SliverGrid(
                       delegate: SliverChildBuilderDelegate(
                         (_, i) {
-                          final p = _filtered[i];
+                          final p = _products[i];
                           return _ProductCard(
                             product: p,
                             onAdd: () => context.read<CartProvider>().addItem(p),
                             onTap: () => _openProductSheet(p, context.read<CartProvider>()),
                           );
                         },
-                        childCount: _filtered.length,
+                        childCount: _products.length,
                       ),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.68,
@@ -747,23 +775,26 @@ class _HomeScreenState extends State<HomeScreen> {
         border: Border.all(color: AppTheme.border),
         boxShadow: [AppTheme.cardShadow.copyWith(blurRadius: 8, offset: const Offset(0, 3))],
       ),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: isDestructive ? Colors.redAccent.withOpacity(0.1) : AppTheme.primaryLight.withOpacity(0.18),
-            borderRadius: BorderRadius.circular(12),
+      child: Material(
+        color: Colors.transparent,
+        child: ListTile(
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          leading: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: isDestructive ? Colors.redAccent.withOpacity(0.1) : AppTheme.primaryLight.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 21),
           ),
-          child: Icon(icon, color: color, size: 21),
+          title: Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: color)),
+          subtitle: subtitle != null
+              ? Text(subtitle, style: const TextStyle(fontSize: 12, color: AppTheme.textMuted, fontWeight: FontWeight.w500))
+              : null,
+          trailing: Icon(Icons.chevron_right_rounded, color: isDestructive ? Colors.redAccent.withOpacity(0.5) : AppTheme.textMuted),
         ),
-        title: Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: color)),
-        subtitle: subtitle != null
-            ? Text(subtitle, style: const TextStyle(fontSize: 12, color: AppTheme.textMuted, fontWeight: FontWeight.w500))
-            : null,
-        trailing: Icon(Icons.chevron_right_rounded, color: isDestructive ? Colors.redAccent.withOpacity(0.5) : AppTheme.textMuted),
       ),
     );
   }

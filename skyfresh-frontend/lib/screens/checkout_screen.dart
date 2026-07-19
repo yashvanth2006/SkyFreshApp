@@ -31,26 +31,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _pinCtrl = TextEditingController();
   final _countryCtrl = TextEditingController(text: 'India');
 
+  late Razorpay _razorpay;
   bool _placing = false;
-  bool _addressesLoading = true;
   bool _processingPayment = false;
+  bool _addressesLoading = true;
   List<UserAddress> _savedAddresses = const [];
   UserAddress? _selectedAddress;
   String _paymentMethod = 'COD';
-  late Razorpay _razorpay;
 
   @override
   void initState() {
     super.initState();
+    if (!kIsWeb) {
+      _razorpay = Razorpay();
+      _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+      _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+      _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+    }
     _loadSavedAddresses();
-    _initRazorpay();
-  }
-
-  void _initRazorpay() {
-    _razorpay = Razorpay();
-    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
   }
 
   @override
@@ -65,7 +63,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _stateCtrl.dispose();
     _pinCtrl.dispose();
     _countryCtrl.dispose();
-    _razorpay.clear();
+    if (!kIsWeb) {
+      _razorpay.clear();
+    }
     super.dispose();
   }
 
@@ -127,7 +127,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _processingPayment = true);
 
     if (kIsWeb) {
-      // Web Razorpay integration would go here
       setState(() => _processingPayment = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Web payment coming soon. Using COD instead.')),

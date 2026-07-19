@@ -25,6 +25,7 @@ class UserProfile {
   final String id;
   final String name;
   final String phone;
+  final String? email;
   final DateTime joinedAt;
   final List<UserAddress> addresses;
   final int orderCount;
@@ -33,6 +34,7 @@ class UserProfile {
     required this.id,
     required this.name,
     required this.phone,
+    this.email,
     required this.joinedAt,
     this.addresses = const [],
     this.orderCount = 0,
@@ -59,6 +61,7 @@ class UserProfile {
       id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
+      email: json['email'] as String?,
       joinedAt: json['joinedAt'] != null
           ? DateTime.tryParse(json['joinedAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
