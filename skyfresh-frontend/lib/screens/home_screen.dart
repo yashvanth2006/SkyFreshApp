@@ -6,7 +6,6 @@ import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/cart_provider.dart';
 import 'package:skyfresh/api_service.dart';
 import 'package:skyfresh/models/user_profile.dart';
-import 'package:skyfresh/screens/profile_screen.dart';
 import 'package:skyfresh/screens/my_orders_screen.dart';
 import 'package:skyfresh/screens/my_addresses_screen.dart';
 import 'package:skyfresh/screens/help_support_screen.dart';
@@ -684,14 +683,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Icons.help_outline_rounded,
                   'Help & Support',
                   subtitle: 'Store info, FAQs & contact',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpSupportScreen())),
-                ),
-                _profileTile(
-                  Icons.person_rounded,
-                  'View Profile',
-                  subtitle: 'Account details and settings',
-                  onTap: _openProfilePage,
-                ),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpSupportScreen()))),
                 _profileTile(Icons.logout_rounded, 'Logout', isDestructive: true, onTap: _logout),
               ]),
             ),
@@ -725,38 +717,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     if (mounted) _loadProfile();
-  }
-
-  void _openProfilePage() {
-    if (_profile == null && !_profileLoading) {
-      _loadProfile().then((_) {
-        if (!mounted) return;
-        _pushProfileScreen();
-      });
-      return;
-    }
-
-    _pushProfileScreen();
-  }
-
-  void _pushProfileScreen() {
-    final profile = _profile ?? UserProfile(
-      id: 'unknown',
-      name: _userName,
-      phone: '',
-      joinedAt: DateTime.now(),
-    );
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ProfileScreen(
-          user: profile,
-          onLogout: _logout,
-          onRefresh: _loadProfile,
-        ),
-      ),
-    );
   }
 
   Widget _profileTile(

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
@@ -15,6 +15,7 @@ export default function App() {
             <Route path="/"         element={<Dashboard />} />
             <Route path="/products" element={<Products />}  />
             <Route path="/orders"   element={<Orders />}    />
+            <Route path="*"         element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>

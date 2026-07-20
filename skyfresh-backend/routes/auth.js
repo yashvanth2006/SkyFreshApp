@@ -2,11 +2,10 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { OAuth2Client } = require('google-auth-library'); // NEW: Import Google Auth
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const Order = require('../models/Order');
 
-// NEW: Initialize Google Client
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 function getToken(req) {
@@ -23,18 +22,6 @@ function requireAuth(req, res, next) {
     next();
   } catch (err) {
     return res.status(401).json({ success: false, message: 'Invalid or expired token' });
-  }
-}
-
-async function requireAdmin(req, res, next) {
-  try {
-    const user = await User.findById(req.user.id);
-    if (!user || user.phone !== '8870682988') { 
-      return res.status(403).json({ success: false, message: 'Access denied. Admins only.' });
-    }
-    next();
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Server authorization error' });
   }
 }
 
@@ -155,7 +142,7 @@ router.post('/login', async (req, res) => {
 });
 
 // ==========================================
-// NEW: GOOGLE SIGN-IN ROUTE
+// GOOGLE SIGN-IN ROUTE
 // ==========================================
 router.post('/google-login', async (req, res) => {
   try {
@@ -292,4 +279,4 @@ router.patch('/addresses/:id/default', requireAuth, async (req, res) => {
   }
 });
 
-module.exports = { router, requireAuth, requireAdmin };
+module.exports = { router, requireAuth };
