@@ -22,6 +22,12 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
+  username: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows users without username
+    trim: true
+  },
   password: {
     type: String,
     required: true
@@ -48,5 +54,11 @@ const userSchema = new mongoose.Schema({
     isDefault: { type: Boolean, default: false },
   }],
 }, { timestamps: true });
+
+// Method to compare password
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  const bcrypt = require('bcryptjs');
+  return await bcrypt.compare(candidatePassword, this.password);
+};
 
 module.exports = mongoose.model('User', userSchema);

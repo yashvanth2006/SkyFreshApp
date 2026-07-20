@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
-const { requireAuth, requireAdmin } = require('./auth');
 
 // Public route: Everyone can view products (Now supports Search & Category filters!)
 router.get('/', async (req, res) => {
@@ -27,8 +26,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Protected Route: Only Admins can append to the catalog
-router.post('/add', requireAuth, requireAdmin, async (req, res) => {
+// Route: Anyone can add products
+router.post('/add', async (req, res) => {
   try {
     const product = new Product(req.body);
     await product.save();
@@ -38,8 +37,8 @@ router.post('/add', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// Protected Route: Only Admins can update an existing product
-router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
+// Route: Anyone can update products
+router.put('/:id', async (req, res) => {
   try {
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id, 
@@ -57,11 +56,11 @@ router.put('/:id', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// Protected Route: Only Admins can remove items from catalog
-router.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
+// Route: Anyone can delete products
+router.delete('/:id', async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'Product successfully deleted by admin.' });
+    res.json({ success: true, message: 'Product successfully deleted.' });
   } catch (err) {
     res.json({ success: false, message: err.message });
   }
