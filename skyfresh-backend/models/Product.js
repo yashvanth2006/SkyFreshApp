@@ -20,7 +20,6 @@ const productSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['Fruits', 'Juices', 'Fresh Cuts'],
     required: true
   },
   stock: {

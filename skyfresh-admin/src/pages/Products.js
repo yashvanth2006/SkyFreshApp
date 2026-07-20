@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import config from '../config';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -9,17 +10,21 @@ const Products = () => {
   const [editingId, setEditingId] = useState(null); // Tracks if we are editing
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
-  const [unit, setUnit] = useState('1 kg');
-  const [emoji, setEmoji] = useState('🍎');
-  const [category, setCategory] = useState('Fruits');
-  const [stock, setStock] = useState(50);
+  const [unit, setUnit] = useState('');
+  const [emoji, setEmoji] = useState('');
+  const [category, setCategory] = useState('');
+  const [stock, setStock] = useState('');
   const [color, setColor] = useState('#FFF3CD');
+  const [customCategory, setCustomCategory] = useState('');
+  const [useCustomCategory, setUseCustomCategory] = useState(false);
 
-  const API_URL = 'http://localhost:5000/api/products';
+  const API_URL = `${config.API_BASE_URL}/products`;
   
   // Custom headers including token verification
   const getAdminHeaders = () => {
     const token = localStorage.getItem('adminToken');
+    console.log('Products - Token from localStorage:', token ? 'exists' : 'null');
+    console.log('Products - Token length:', token ? token.length : 0);
     return {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
@@ -53,17 +58,24 @@ const Products = () => {
     setEditingId(null);
     setName('');
     setPrice('');
-    setUnit('1 kg');
-    setEmoji('🍎');
-    setCategory('Fruits');
-    setStock(50);
+    setUnit('');
+    setEmoji('');
+    setCategory('');
+    setStock('');
     setColor('#FFF3CD');
+    setCustomCategory('');
+    setUseCustomCategory(false);
   };
 
   // Handle adding or updating a product
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const productData = { name, price: Number(price), unit, emoji, category, stock: Number(stock), color };
+    const finalCategory = useCustomCategory ? customCategory : category;
+    const productData = { name, price: Number(price), unit, emoji, category: finalCategory, stock: Number(stock), color };
+
+    console.log('handleSubmit - API URL:', API_URL);
+    console.log('handleSubmit - editingId:', editingId);
+    console.log('handleSubmit - productData:', productData);
 
     if (editingId) {
       // UPDATE EXISTING PRODUCT (PUT)
@@ -88,6 +100,7 @@ const Products = () => {
     } else {
       // ADD NEW PRODUCT (POST)
       try {
+        console.log('handleSubmit - Adding new product to:', `${API_URL}/add`);
         const response = await fetch(`${API_URL}/add`, {
           method: 'POST',
           headers: getAdminHeaders(),
@@ -118,6 +131,8 @@ const Products = () => {
     setCategory(product.category);
     setStock(product.stock);
     setColor(product.color || '#FFF3CD');
+    setCustomCategory('');
+    setUseCustomCategory(false);
   };
 
   // Handle removing a product from the database
@@ -161,11 +176,45 @@ const Products = () => {
           <input type="number" placeholder="Stock Qty" value={stock} onChange={e => setStock(e.target.value)} required style={{ padding: '8px', width: '100px' }} />
           <input type="color" value={color} onChange={e => setColor(e.target.value)} style={{ width: '50px', height: '38px', padding: '0', border: 'none' }} title="Choose background highlight color" />
           
-          <select value={category} onChange={e => setCategory(e.target.value)} style={{ padding: '8px' }}>
-            <option value="Fruits">Fruits</option>
-            <option value="Juices">Juices</option>
-            <option value="Fresh Cuts">Fresh Cuts</option>
-          </select>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <select 
+              value={useCustomCategory ? 'custom' : category} 
+              onChange={e => {
+                if (e.target.value === 'custom') {
+                  setUseCustomCategory(true);
+                  setCategory('');
+                } else {
+                  setUseCustomCategory(false);
+                  setCategory(e.target.value);
+                }
+              }} 
+              style={{ padding: '8px' }}
+              disabled={useCustomCategory}
+            >
+              <option value="">Select Category</option>
+              <option value="Fruits">Fruits</option>
+              <option value="Vegetables">Vegetables</option>
+              <option value="Dairy & Eggs">Dairy & Eggs</option>
+              <option value="Meat & Poultry">Meat & Poultry</option>
+              <option value="Bakery">Bakery</option>
+              <option value="Snacks">Snacks</option>
+              <option value="Beverages">Beverages</option>
+              <option value="Pasta & Grains">Pasta & Grains</option>
+              <option value="Others">Others</option>
+              <option value="custom">Custom Category...</option>
+            </select>
+            
+            {useCustomCategory && (
+              <input 
+                type="text" 
+                placeholder="Enter custom category" 
+                value={customCategory} 
+                onChange={e => setCustomCategory(e.target.value)} 
+                required 
+                style={{ padding: '8px', flex: 1 }} 
+              />
+            )}
+          </div>
           
           <button type="submit" style={{ padding: '8px 20px', background: editingId ? '#1976d2' : '#2e7d32', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
             {editingId ? 'Update Product' : 'Save Product'}

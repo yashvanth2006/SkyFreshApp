@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library'); // NEW: Import Google Auth
 const User = require('../models/User');
 const Order = require('../models/Order');
+const Admin = require('../models/Admin');
 
 // NEW: Initialize Google Client
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -20,6 +21,7 @@ function requireAuth(req, res, next) {
   if (!token) return res.status(401).json({ success: false, message: 'No token provided' });
   try {
     req.user = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('requireAuth - decoded token:', req.user);
     next();
   } catch (err) {
     return res.status(401).json({ success: false, message: 'Invalid or expired token' });
@@ -28,12 +30,21 @@ function requireAuth(req, res, next) {
 
 async function requireAdmin(req, res, next) {
   try {
-    const user = await User.findById(req.user.id);
-    if (!user || user.phone !== '8870682988') { 
+    console.log('requireAdmin - req.user:', req.user);
+    const admin = await Admin.findById(req.user.id);
+    console.log('requireAdmin - found admin:', admin ? admin.username : 'null');
+    console.log('requireAdmin - admin ID from token:', req.user.id);
+    console.log('requireAdmin - admin ID from DB:', admin ? admin._id.toString() : 'null');
+    
+    if (!admin) {
+      console.log('requireAdmin - ACCESS DENIED - Admin not found');
       return res.status(403).json({ success: false, message: 'Access denied. Admins only.' });
     }
+    console.log('requireAdmin - ACCESS GRANTED');
+    req.admin = admin;
     next();
   } catch (err) {
+    console.error('requireAdmin - error:', err);
     res.status(500).json({ success: false, message: 'Server authorization error' });
   }
 }
@@ -151,6 +162,45 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     console.error('Login error:', err);
     res.json({ success: false, message: 'Login failed', error: err.message });
+  }
+});
+
+// Admin login route (username/password)
+router.post('/admin/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    
+    const admin = await Admin.findOne({ username });
+    if (!admin) {
+      return res.json({ success: false, message: 'Admin not found' });
+    }
+    
+    const isMatch = await admin.comparePassword(password);
+    if (!isMatch) {
+      return res.json({ success: false, message: 'Invalid password' });
+    }
+    
+    // Generate token
+    const token = jwt.sign(
+      { id: admin._id, username: admin.username, type: 'admin' },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    
+    res.json({ 
+      success: true, 
+      message: 'Admin login successful', 
+      token, 
+      admin: {
+        id: admin._id,
+        username: admin.username,
+        name: admin.name
+      }
+    });
+    
+  } catch (err) {
+    console.error('Admin login error:', err);
+    res.json({ success: false, message: 'Admin login failed', error: err.message });
   }
 });
 

@@ -38,6 +38,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isAdmin: {
+    type: Boolean,
+    default: false
+  },
   addresses: [{
     label: { type: String, default: 'Home', trim: true },
     line: { type: String, required: true, trim: true },

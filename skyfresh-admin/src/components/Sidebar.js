@@ -8,7 +8,7 @@ const links = [
   { to: '/users',    icon: '👥', label: 'Users'     },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ onLogout }) {
   return (
     <div style={styles.sidebar}>
       {/* Logo */}
@@ -51,6 +51,9 @@ export default function Sidebar() {
             <div style={{ fontSize: 11, color: '#94A3B8' }}>SKYfresh</div>
           </div>
         </div>
+        <button onClick={onLogout} style={styles.logoutButton}>
+          Logout
+        </button>
       </div>
     </div>
   );
@@ -95,5 +98,17 @@ const styles = {
     display: 'flex', alignItems: 'center', gap: 10,
     padding: '10px 12px', background: '#F8FAFC',
     borderRadius: 12,
+  },
+  logoutButton: {
+    marginTop: 12,
+    padding: '10px 16px',
+    background: '#EF4444',
+    color: 'white',
+    border: 'none',
+    borderRadius: 8,
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: 'pointer',
+    width: '100%',
   },
 };
