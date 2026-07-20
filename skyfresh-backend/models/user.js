@@ -6,13 +6,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  // ==============================
-  // NEW: Added Email Field
-  // ==============================
   email: { 
     type: String,
     unique: true,
-    sparse: true, // Allows phone-only users to exist without an email
+    sparse: true,
     trim: true,
     lowercase: true
   },
@@ -20,12 +17,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    trim: true
-  },
-  username: {
-    type: String,
-    unique: true,
-    sparse: true, // Allows users without username
     trim: true
   },
   password: {
@@ -41,10 +32,6 @@ const userSchema = new mongoose.Schema({
     default: null
   },
   isVerified: {
-    type: Boolean,
-    default: false
-  },
-  isAdmin: {
     type: Boolean,
     default: false
   },

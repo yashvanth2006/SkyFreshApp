@@ -69,12 +69,9 @@ router.post('/register', async (req, res) => {
     await user.save();
     
     // In production, send OTP via SMS
-    console.log(`OTP for ${phone}: ${otp}`);
-    
     res.json({ success: true, message: 'Registration successful. Please verify OTP.' });
     
   } catch (err) {
-    console.error('Registration error:', err);
     res.json({ success: false, message: 'Registration failed', error: err.message });
   }
 });
@@ -107,7 +104,6 @@ router.post('/verify-otp', async (req, res) => {
     res.json({ success: true, message: 'OTP verified successfully', token, user: formatUser(user) });
     
   } catch (err) {
-    console.error('OTP verification error:', err);
     res.json({ success: false, message: 'OTP verification failed', error: err.message });
   }
 });
@@ -136,7 +132,6 @@ router.post('/login', async (req, res) => {
     res.json({ success: true, message: 'Login successful', token, user: formatUser(user) });
     
   } catch (err) {
-    console.error('Login error:', err);
     res.json({ success: false, message: 'Login failed', error: err.message });
   }
 });
@@ -203,7 +198,6 @@ router.get('/me', requireAuth, async (req, res) => {
     res.json({ success: true, user: formatUser(user, { orderCount }) });
     
   } catch (err) {
-    console.error('Get profile error:', err);
     res.json({ success: false, message: 'Failed to fetch profile', error: err.message });
   }
 });
@@ -228,7 +222,6 @@ router.post('/addresses', requireAuth, async (req, res) => {
     res.json({ success: true, message: 'Address added successfully', user: formatUser(user) });
     
   } catch (err) {
-    console.error('Add address error:', err);
     res.json({ success: false, message: 'Failed to add address', error: err.message });
   }
 });
@@ -247,7 +240,6 @@ router.delete('/addresses/:id', requireAuth, async (req, res) => {
     res.json({ success: true, message: 'Address deleted successfully', user: formatUser(user) });
     
   } catch (err) {
-    console.error('Delete address error:', err);
     res.json({ success: false, message: 'Failed to delete address', error: err.message });
   }
 });
@@ -274,7 +266,6 @@ router.patch('/addresses/:id/default', requireAuth, async (req, res) => {
     res.json({ success: true, message: 'Default address updated', user: formatUser(user) });
     
   } catch (err) {
-    console.error('Update default address error:', err);
     res.json({ success: false, message: 'Failed to update default address', error: err.message });
   }
 });

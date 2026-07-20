@@ -1,10 +1,13 @@
-// Remove the hardcoded string and read from process.env
-const PEXELS_KEY = process.env.PEXELS_KEY;
 require('dotenv').config();
 const mongoose = require('mongoose');
 const Product = require('./models/Product');
 
-const PEXELS_KEY = 'dHPIVC9kk0FHyUKzNNMzaAa45UWwqJ1GQTsxMbTdBKwCjsczHIbniwWg';
+const PEXELS_KEY = process.env.PEXELS_KEY;
+
+if (!PEXELS_KEY) {
+  console.error('❌ PEXELS_KEY environment variable is required');
+  process.exit(1);
+}
 
 async function getImage(query) {
   const encodedQuery = encodeURIComponent(query);
