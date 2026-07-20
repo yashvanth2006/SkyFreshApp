@@ -20,17 +20,6 @@ const Products = () => {
 
   const API_URL = `${config.API_BASE_URL}/products`;
   
-  // Custom headers including token verification
-  const getAdminHeaders = () => {
-    const token = localStorage.getItem('adminToken');
-    console.log('Products - Token from localStorage:', token ? 'exists' : 'null');
-    console.log('Products - Token length:', token ? token.length : 0);
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
-  };
-
   // Fetch all live products from the MongoDB database
   const fetchProducts = async () => {
     try {
