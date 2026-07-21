@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../api_service.dart';
-import 'home_screen.dart'; // Make sure this path matches your files
+import 'home_screen.dart';
 
 class OtpScreen extends StatefulWidget {
   final String phone;
-  const OtpScreen({Key? k, required this.phone}) : super(key: k);
+  const OtpScreen({super.key, required this.phone});
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
@@ -14,11 +14,19 @@ class _OtpScreenState extends State<OtpScreen> {
   final _otpController = TextEditingController();
   bool _isVerifying = false;
 
+  @override
+  void dispose() {
+    _otpController.dispose();
+    super.dispose();
+  }
+
   void _handleVerifyOtp() async {
     final otp = _otpController.text.trim();
     if (otp.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid 6-digit verification code')),
+        const SnackBar(
+          content: Text('Please enter a valid 6-digit verification code'),
+        ),
       );
       return;
     }
@@ -28,14 +36,17 @@ class _OtpScreenState extends State<OtpScreen> {
     // Call verification logic
     final response = await ApiService.verifyOtp(widget.phone, otp);
 
+    if (!mounted) return;
     setState(() => _isVerifying = false);
 
     if (response['success'] == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account verified! Welcome to SKYfresh 🌿')),
+        const SnackBar(
+          content: Text('Account verified! Welcome to SKYfresh 🌿'),
+        ),
       );
 
-      // Route the authorized user straight into the core storefront shell
+      // Route authorized user straight into core storefront shell
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -43,7 +54,9 @@ class _OtpScreenState extends State<OtpScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response['message'] ?? 'Invalid OTP code')),
+        SnackBar(
+          content: Text(response['message'] ?? 'Invalid OTP code'),
+        ),
       );
     }
   }
@@ -80,7 +93,9 @@ class _OtpScreenState extends State<OtpScreen> {
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
                     onPressed: _handleVerifyOtp,
-                    style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(50),
+                    ),
                     child: const Text('Verify & Continue'),
                   ),
           ],
