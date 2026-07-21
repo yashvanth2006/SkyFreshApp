@@ -6,6 +6,7 @@ import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
+
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
@@ -19,16 +20,23 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    _ctrl  = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
-    _fade  = Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeIn));
-    _scale = Tween(begin: 0.6, end: 1.0).animate(CurvedAnimation(parent: _ctrl, curve: Curves.elasticOut));
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+    _fade = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeIn),
+    );
+    _scale = Tween(begin: 0.6, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.elasticOut),
+    );
     _ctrl.forward();
-    
+
     Future.delayed(const Duration(milliseconds: 3000), () async {
       if (!mounted) return;
       bool loggedIn = await ApiService.isLoggedIn();
       if (!mounted) return;
-      
+
       if (loggedIn) {
         Navigator.pushReplacement(
           context,
@@ -44,7 +52,10 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,25 +64,35 @@ class _SplashScreenState extends State<SplashScreen>
       body: Stack(
         children: [
           Positioned(
-            top: -120, right: -120,
+            top: -120,
+            right: -120,
             child: Container(
-              width: 280, height: 280,
+              width: 280,
+              height: 280,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [AppTheme.primary.withOpacity(0.22), Colors.transparent],
+                  colors: [
+                    AppTheme.primary.withOpacity(0.22),
+                    Colors.transparent,
+                  ],
                 ),
               ),
             ),
           ),
           Positioned(
-            bottom: -140, left: -110,
+            bottom: -140,
+            left: -110,
             child: Container(
-              width: 340, height: 340,
+              width: 340,
+              height: 340,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [AppTheme.primaryLight.withOpacity(0.22), Colors.transparent],
+                  colors: [
+                    AppTheme.primaryLight.withOpacity(0.22),
+                    Colors.transparent,
+                  ],
                 ),
               ),
             ),
@@ -85,7 +106,8 @@ class _SplashScreenState extends State<SplashScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 120, height: 120,
+                      width: 120,
+                      height: 120,
                       decoration: BoxDecoration(
                         color: AppTheme.surface,
                         borderRadius: BorderRadius.circular(34),
@@ -105,25 +127,45 @@ class _SplashScreenState extends State<SplashScreen>
                     RichText(
                       textAlign: TextAlign.center,
                       text: const TextSpan(
-                        style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900,
-                            letterSpacing: -1.5, color: AppTheme.textMain),
+                        style: TextStyle(
+                          fontSize: 42,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -1.5,
+                          color: AppTheme.textMain,
+                        ),
                         children: [
-                          TextSpan(text: 'SKY', style: TextStyle(color: AppTheme.primaryDark)),
-                          TextSpan(text: 'fresh', style: TextStyle(color: AppTheme.primary)),
+                          TextSpan(
+                            text: 'SKY',
+                            style: TextStyle(color: AppTheme.primaryDark),
+                          ),
+                          TextSpan(
+                            text: 'fresh',
+                            style: TextStyle(color: AppTheme.primary),
+                          ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 12),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 32),
-                      child: Text('Fresh groceries delivered in minutes, with a premium app experience.',
+                      child: Text(
+                        'Fresh groceries delivered in minutes, with a premium app experience.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 15, color: AppTheme.textMuted, height: 1.6)),
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: AppTheme.textMuted,
+                          height: 1.6,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 54),
-                    Container(
-                      width: 34, height: 34,
-                      child: const CircularProgressIndicator(color: AppTheme.primary, strokeWidth: 3),
+                    const SizedBox(
+                      width: 34,
+                      height: 34,
+                      child: CircularProgressIndicator(
+                        color: AppTheme.primary,
+                        strokeWidth: 3,
+                      ),
                     ),
                   ],
                 ),
