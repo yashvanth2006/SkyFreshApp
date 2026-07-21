@@ -33,8 +33,9 @@ class _LoginScreenState extends State<LoginScreen> {
       password: _passCtrl.text,
     );
 
-    setState(() => _loading = false);
+    // FIXED: Moved mounted check ABOVE setState to prevent unmounted crash
     if (!mounted) return;
+    setState(() => _loading = false);
 
     if (result['success'] == true) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
