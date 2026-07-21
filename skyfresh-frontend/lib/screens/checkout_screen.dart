@@ -296,7 +296,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _stepIndicator() {
-    final steps = ['Cart', 'Address', 'Payment', 'Review'];
+    final steps = ['Cart', 'Address', 'Payment'];
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(steps.length, (i) {
