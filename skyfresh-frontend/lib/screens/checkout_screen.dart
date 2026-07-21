@@ -250,7 +250,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-
   Future<void> _placeOrder() async {
     if (_savedAddresses.isEmpty && !_formKey.currentState!.validate()) return;
     final cart = context.read<CartProvider>();
@@ -293,48 +292,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Could not place order')));
     }
-  }
-
-  Widget _stepIndicator() {
-    final steps = ['Cart', 'Address', 'Payment'];
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(steps.length, (i) {
-        final isActive = i <= 1;
-        return Expanded(
-          child: Column(
-            children: [
-              Container(
-                width: 36, height: 36,
-                decoration: BoxDecoration(
-                  color: isActive ? AppTheme.primary : AppTheme.surfaceLight,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(
-                    '${i + 1}',
-                    style: TextStyle(
-                      color: isActive ? Colors.white : AppTheme.textMuted,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                steps[i],
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: isActive ? AppTheme.textMain : AppTheme.textMuted,
-                ),
-              ),
-            ],
-          ),
-        );
-      }),
-    );
   }
 
   Widget _deliveryAddressSection() {
@@ -396,9 +353,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _stepIndicator(),
-              const SizedBox(height: 18),
-
               // Address Form
               Container(
                 padding: const EdgeInsets.all(14),
