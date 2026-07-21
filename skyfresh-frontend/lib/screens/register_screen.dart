@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../api_service.dart'; // Import your API service
+import '../api_service.dart';
 import 'otp_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? k}) : super(key: k);
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -14,6 +14,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   void _handleRegister() async {
     final name = _nameController.text.trim();
@@ -29,16 +37,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() => _isLoading = true);
 
-    // Call your backend API service
+    // Call backend API service
     final response = await ApiService.registerUser(name, phone, password);
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
     if (response['success'] == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(response['message'] ?? 'OTP Sent!')),
       );
-      
+
       // Navigate to OTP verification screen passing the phone number
       Navigator.push(
         context,
@@ -48,7 +57,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response['message'] ?? 'Registration failed')),
+        SnackBar(
+          content: Text(response['message'] ?? 'Registration failed'),
+        ),
       );
     }
   }
@@ -64,26 +75,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
           children: [
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: 'Full Name',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 15),
             TextField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: 'Phone Number',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 15),
             TextField(
               controller: _passwordController,
               obscureText: true,
-              decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                labelText: 'Password',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 25),
             _isLoading
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
                     onPressed: _handleRegister,
-                    style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(50),
+                    ),
                     child: const Text('Sign Up'),
                   ),
           ],
