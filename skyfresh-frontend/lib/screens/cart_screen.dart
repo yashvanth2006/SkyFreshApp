@@ -13,7 +13,12 @@ class CartScreen extends StatefulWidget {
 class _CartScreenState extends State<CartScreen> {
   bool _placingOrder = false;
 
-  Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, int grandTotal) async {
+Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, int grandTotal) async {
+    // Prevent multiple taps
+    if (_placingOrder) return; 
+    
+    setState(() => _placingOrder = true);
+
     if (!mounted) return;
     await Navigator.push(
       context,
@@ -25,6 +30,11 @@ class _CartScreenState extends State<CartScreen> {
         ),
       ),
     );
+
+    // Reset the loading state when the user returns to the cart
+    if (mounted) {
+      setState(() => _placingOrder = false);
+    }
   }
 
   @override
