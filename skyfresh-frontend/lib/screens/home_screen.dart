@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:async'; // Added for search debouncing
+import 'dart:async';
 import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/cart_provider.dart';
 import 'package:skyfresh/api_service.dart';
@@ -30,7 +30,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final int _notifCount = 5;
   
   String _search = '';
-  Timer? _debounce; // Added to prevent spamming API on every keystroke
+  Timer? _debounce;
+  // FIXED: Added persistent controller to prevent memory leaks in the build method
+  final TextEditingController _searchController = TextEditingController();
   
   List<Map<String, dynamic>> _products = [];
   bool _loading = true;
@@ -46,12 +48,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadUser();
-    _fetchDynamicProducts(); // Initial load
+    _fetchDynamicProducts();
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _searchController.dispose(); // FIXED: Proper cleanup
     super.dispose();
   }
 
@@ -91,7 +94,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // UPDATED: Now queries the backend with search and category filters
   Future<void> _fetchDynamicProducts() async {
     setState(() => _loading = true);
     
@@ -118,7 +120,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  // Handle Search Input with Debounce
   void _onSearchChanged(String query) {
     setState(() => _search = query);
     
@@ -379,12 +380,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: TextField(
                         onChanged: _onSearchChanged,
-                        controller: TextEditingController.fromValue(
-                          TextEditingValue(
-                            text: _search,
-                            selection: TextSelection.collapsed(offset: _search.length),
-                          ),
-                        ),
+                        controller: _searchController, // FIXED: Utilizing dedicated controller
                         style: const TextStyle(fontSize: 15, color: AppTheme.textMain),
                         decoration: InputDecoration(
                           hintText: 'Search premium fruits...',
@@ -394,6 +390,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ? IconButton(
                                 icon: const Icon(Icons.close_rounded, color: AppTheme.textMuted, size: 20),
                                 onPressed: () {
+                                  _searchController.clear(); // Clear text field properly
                                   _onSearchChanged('');
                                   FocusScope.of(context).unfocus();
                                 },
