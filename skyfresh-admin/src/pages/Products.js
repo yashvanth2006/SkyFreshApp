@@ -7,7 +7,7 @@ const getAdminHeaders = () => ({
 
 const Products = () => {
   const [products, setProducts] = useState([]);
-  const [formData, setFormData] = useState({ id: null, name: '', price: '', category: '', stock: '' });
+  const [formData, setFormData] = useState({ id: null, name: '', price: '', category: '', stock: '', image: '' });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -93,7 +93,7 @@ const Products = () => {
   };
 
   const resetForm = () => {
-    setFormData({ id: null, name: '', price: '', category: '', stock: '' });
+    setFormData({ id: null, name: '', price: '', category: '', stock: '', image: '' });
     setIsEditing(false);
   };
 
@@ -144,6 +144,14 @@ const Products = () => {
             value={formData.stock}
             onChange={handleChange}
             required
+            style={styles.input}
+          />
+          <input
+            type="text"
+            name="image"
+            placeholder="Image URL (optional - auto-filled if empty)"
+            value={formData.image}
+            onChange={handleChange}
             style={styles.input}
           />
         </div>
