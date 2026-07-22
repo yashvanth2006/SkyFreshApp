@@ -19,8 +19,15 @@ const Products = () => {
     try {
       const res = await fetch(`${config.API_BASE_URL}/products`);
       const data = await res.json();
+      console.log('Fetched data:', data);
+      
+      // Handle both array and object response formats
       if (Array.isArray(data)) {
         setProducts(data);
+      } else if (data.success && data.products) {
+        setProducts(data.products);
+      } else if (data.products) {
+        setProducts(data.products);
       } else {
         setProducts([]);
       }

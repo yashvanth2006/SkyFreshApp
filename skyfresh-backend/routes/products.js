@@ -31,9 +31,9 @@ router.get('/', async (req, res) => {
     const { search, category } = req.query;
     let query = {};
 
-    // 1. Filter by category (if provided)
+    // 1. Filter by category (if provided) - Case insensitive
     if (category && category !== 'All') {
-      query.category = category;
+      query.category = { $regex: `^${category}$`, $options: 'i' };
     }
 
     // 2. Filter by search term (if provided) - Case insensitive
