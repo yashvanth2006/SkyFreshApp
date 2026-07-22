@@ -8,7 +8,7 @@ const cors = require('cors');
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001'],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -23,6 +23,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/serviceability', require('./routes/serviceability'));
+app.use('/api/users', require('./routes/auth')); // Or wherever your users route is located
 
 app.get('/', (req, res) => {
   res.json({ message: 'SKYfresh API is running smoothly 🌿' });
