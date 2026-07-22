@@ -7,7 +7,7 @@ const getAdminHeaders = () => ({
 
 const Products = () => {
   const [products, setProducts] = useState([]);
-  const [formData, setFormData] = useState({ id: null, name: '', price: '', category: '', stock: '', image: '' });
+  const [formData, setFormData] = useState({ id: null, name: '', price: '', unit: '', category: '', stock: '', image: '' });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -93,7 +93,7 @@ const Products = () => {
   };
 
   const resetForm = () => {
-    setFormData({ id: null, name: '', price: '', category: '', stock: '', image: '' });
+    setFormData({ id: null, name: '', price: '', unit: '', category: '', stock: '', image: '' });
     setIsEditing(false);
   };
 
@@ -119,6 +119,15 @@ const Products = () => {
             name="price"
             placeholder="Price (₹)"
             value={formData.price}
+            onChange={handleChange}
+            required
+            style={styles.input}
+          />
+          <input
+            type="text"
+            name="unit"
+            placeholder="Unit (e.g., 1kg, 500ml, 1 pc)"
+            value={formData.unit}
             onChange={handleChange}
             required
             style={styles.input}
@@ -187,7 +196,7 @@ const Products = () => {
               <tr key={p.id || p._id}>
                 <td style={styles.td}>{p.name}</td>
                 <td style={styles.td}>{p.category}</td>
-                <td style={styles.td}>₹{p.price}</td>
+                <td style={styles.td}>₹{p.price} / {p.unit}</td>
                 <td style={styles.td}>{p.stock}</td>
                 <td style={styles.td}>
                   <button onClick={() => handleEdit(p)} style={styles.btnSmall}>
