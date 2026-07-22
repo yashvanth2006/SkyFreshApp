@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import config from './config';
+import config from '../config'; // Updated to '../config'
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -32,7 +32,7 @@ const Orders = () => {
       if (res.ok) {
         setOrders(
           orders.map((order) =>
-            order.id === orderId ? { ...order, status: newStatus } : order
+            (order.id === orderId || order._id === orderId) ? { ...order, status: newStatus } : order
           )
         );
       }
@@ -59,17 +59,17 @@ const Orders = () => {
           </thead>
           <tbody>
             {orders.map((order) => (
-              <tr key={order.id}>
-                <td style={styles.td}>#{order.id}</td>
-                <td style={styles.td}>{order.customerName || order.user}</td>
-                <td style={styles.td}>${order.total}</td>
+              <tr key={order.id || order._id}>
+                <td style={styles.td}>#{(order.id || order._id).slice(-6)}</td>
+                <td style={styles.td}>{order.customerName || order.user || 'Guest User'}</td>
+                <td style={styles.td}>${order.totalAmount || order.total || 0}</td>
                 <td style={styles.td}>
                   <span style={getBadgeStyle(order.status)}>{order.status}</span>
                 </td>
                 <td style={styles.td}>
                   <select
                     value={order.status}
-                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                    onChange={(e) => handleStatusChange(order.id || order._id, e.target.value)}
                     style={styles.select}
                   >
                     <option value="Pending">Pending</option>

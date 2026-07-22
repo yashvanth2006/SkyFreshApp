@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import config from './config';
+import config from '../config'; // Updated to '../config'
 
 const getAdminHeaders = () => ({
   'Content-Type': 'application/json',
-  // 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
 });
 
 const Products = () => {
@@ -154,7 +153,7 @@ const Products = () => {
           </thead>
           <tbody>
             {products.map((p) => (
-              <tr key={p.id}>
+              <tr key={p.id || p._id}>
                 <td style={styles.td}>{p.name}</td>
                 <td style={styles.td}>{p.category}</td>
                 <td style={styles.td}>${p.price}</td>
@@ -164,7 +163,7 @@ const Products = () => {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDeleteProduct(p.id)}
+                    onClick={() => handleDeleteProduct(p.id || p._id)}
                     style={{ ...styles.btnSmall, backgroundColor: '#ef4444' }}
                   >
                     Remove
