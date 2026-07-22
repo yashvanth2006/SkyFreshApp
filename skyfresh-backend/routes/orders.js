@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Order = require('../models/Order');
-const User = require('../models/User');
+const User = require('../models/user');
 
 // ── Auth middleware: verifies JWT and attaches user info to req.user
 function requireAuth(req, res, next) {
@@ -23,7 +23,8 @@ function requireAuth(req, res, next) {
 // ── PLACE ORDER
 router.post('/', requireAuth, async (req, res) => {
   try {
-    const { items, subtotal, deliveryFee, total, address } = req.body;
+    // FIXED: Extract paymentMethod from req.body
+    const { items, subtotal, deliveryFee, total, address, paymentMethod } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.json({ success: false, message: 'Cart is empty' });
@@ -32,6 +33,7 @@ router.post('/', requireAuth, async (req, res) => {
       return res.json({ success: false, message: 'Delivery address is required' });
     }
 
+    // FIXED: Add paymentMethod to the new Order object
     const order = new Order({
       user: req.user.id,
       items,
@@ -39,6 +41,7 @@ router.post('/', requireAuth, async (req, res) => {
       deliveryFee,
       total,
       address: address.trim(),
+      paymentMethod: paymentMethod || 'Cash on Delivery', 
     });
     await order.save();
 
