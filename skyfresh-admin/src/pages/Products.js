@@ -7,7 +7,7 @@ const getAdminHeaders = () => ({
 
 const Products = () => {
   const [products, setProducts] = useState([]);
-  const [formData, setFormData] = useState({ id: null, name: '', price: '', category: '', stock: '' });
+  const [formData, setFormData] = useState({ id: null, name: '', price: '', unit: '', category: '', stock: '', image: '' });
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -19,8 +19,15 @@ const Products = () => {
     try {
       const res = await fetch(`${config.API_BASE_URL}/products`);
       const data = await res.json();
+      console.log('Fetched data:', data);
+      
+      // Handle both array and object response formats
       if (Array.isArray(data)) {
         setProducts(data);
+      } else if (data.success && data.products) {
+        setProducts(data.products);
+      } else if (data.products) {
+        setProducts(data.products);
       } else {
         setProducts([]);
       }
@@ -93,7 +100,7 @@ const Products = () => {
   };
 
   const resetForm = () => {
-    setFormData({ id: null, name: '', price: '', category: '', stock: '' });
+    setFormData({ id: null, name: '', price: '', unit: '', category: '', stock: '', image: '' });
     setIsEditing(false);
   };
 
@@ -123,6 +130,15 @@ const Products = () => {
             required
             style={styles.input}
           />
+          <input
+            type="text"
+            name="unit"
+            placeholder="Unit (e.g., 1kg, 500ml, 1 pc)"
+            value={formData.unit}
+            onChange={handleChange}
+            required
+            style={styles.input}
+          />
           
           {/* UPDATED: Category Dropdown */}
           <select
@@ -144,6 +160,14 @@ const Products = () => {
             value={formData.stock}
             onChange={handleChange}
             required
+            style={styles.input}
+          />
+          <input
+            type="text"
+            name="image"
+            placeholder="Image URL (optional - auto-filled if empty)"
+            value={formData.image}
+            onChange={handleChange}
             style={styles.input}
           />
         </div>
@@ -179,7 +203,7 @@ const Products = () => {
               <tr key={p.id || p._id}>
                 <td style={styles.td}>{p.name}</td>
                 <td style={styles.td}>{p.category}</td>
-                <td style={styles.td}>₹{p.price}</td>
+                <td style={styles.td}>₹{p.price} / {p.unit}</td>
                 <td style={styles.td}>{p.stock}</td>
                 <td style={styles.td}>
                   <button onClick={() => handleEdit(p)} style={styles.btnSmall}>
