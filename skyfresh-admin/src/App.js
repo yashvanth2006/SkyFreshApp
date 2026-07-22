@@ -1,10 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Sidebar from './Sidebar';
-import Dashboard from './Dashboard';
-import Products from './Products';
-import Orders from './Orders';
-import Users from './Users';
+
+// Updated paths to match your folder structure
+import Sidebar from './components/Sidebar';
+import Dashboard from './pages/Dashboard';
+import Products from './pages/Products';
+import Orders from './pages/Orders';
+import Users from './Users'; // This one is still in the root src folder
 
 function App() {
   return (
