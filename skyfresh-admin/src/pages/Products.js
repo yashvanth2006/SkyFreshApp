@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import config from '../config'; // Updated to '../config'
+import config from '../config';
 
 const getAdminHeaders = () => ({
   'Content-Type': 'application/json',
@@ -19,7 +19,11 @@ const Products = () => {
     try {
       const res = await fetch(`${config.API_BASE_URL}/products`);
       const data = await res.json();
-      setProducts(data);
+      if (Array.isArray(data)) {
+        setProducts(data);
+      } else {
+        setProducts([]);
+      }
     } catch (err) {
       console.error('Error fetching products:', err);
     } finally {
@@ -33,8 +37,15 @@ const Products = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Prevent submitting without a category
+    if (!formData.category) {
+      alert("Please select a category (Fruits or Juices)!");
+      return;
+    }
+
     const url = isEditing
-      ? `${config.API_BASE_URL}/products/${formData.id}`
+      ? `${config.API_BASE_URL}/products/${formData.id || formData._id}`
       : `${config.API_BASE_URL}/products`;
     const method = isEditing ? 'PUT' : 'POST';
 
@@ -48,9 +59,16 @@ const Products = () => {
       if (res.ok) {
         fetchProducts();
         resetForm();
+        alert(isEditing ? 'Product updated successfully!' : 'Product saved successfully!');
+      } else {
+        // If it fails, this will read the error from the backend and show it to you
+        const errorData = await res.json();
+        console.error('Server error response:', errorData);
+        alert(`Failed to save product: ${errorData.message || 'Check terminal for errors'}`);
       }
     } catch (err) {
       console.error('Error saving product:', err);
+      alert('Network error. Make sure your Node.js backend is running!');
     }
   };
 
@@ -99,21 +117,26 @@ const Products = () => {
           <input
             type="number"
             name="price"
-            placeholder="Price ($)"
+            placeholder="Price (₹)"
             value={formData.price}
             onChange={handleChange}
             required
             style={styles.input}
           />
-          <input
-            type="text"
+          
+          {/* UPDATED: Category Dropdown */}
+          <select
             name="category"
-            placeholder="Category"
             value={formData.category}
             onChange={handleChange}
             required
             style={styles.input}
-          />
+          >
+            <option value="" disabled>Select Category</option>
+            <option value="Fruits">Fruits</option>
+            <option value="Juices">Juices</option>
+          </select>
+
           <input
             type="number"
             name="stock"
@@ -156,7 +179,7 @@ const Products = () => {
               <tr key={p.id || p._id}>
                 <td style={styles.td}>{p.name}</td>
                 <td style={styles.td}>{p.category}</td>
-                <td style={styles.td}>${p.price}</td>
+                <td style={styles.td}>₹{p.price}</td>
                 <td style={styles.td}>{p.stock}</td>
                 <td style={styles.td}>
                   <button onClick={() => handleEdit(p)} style={styles.btnSmall}>
@@ -181,7 +204,7 @@ const Products = () => {
 const styles = {
   form: { backgroundColor: '#fff', padding: '20px', borderRadius: '8px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
   formGroup: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' },
-  input: { padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none' },
+  input: { padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', backgroundColor: '#fff' },
   btnPrimary: { padding: '8px 16px', backgroundColor: '#0284c7', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '8px' },
   btnSecondary: { padding: '8px 16px', backgroundColor: '#64748b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' },
   btnSmall: { padding: '4px 8px', backgroundColor: '#0284c7', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '6px' },

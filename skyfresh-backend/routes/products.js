@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
 });
 
 // Route: Anyone can add products
-router.post('/add', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const product = new Product(req.body);
     await product.save();
