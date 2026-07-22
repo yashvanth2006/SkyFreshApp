@@ -1,37 +1,30 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+// Updated paths to match your folder structure
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Orders from './pages/Orders';
+import Users from './Users'; // Root src folder
 
-export default function App() {
+function App() {
   return (
-    <BrowserRouter>
-      <div style={styles.container}>
+    <Router>
+      <div className="admin-container" style={{ display: 'flex', minHeight: '100vh' }}>
         <Sidebar />
-        <main style={styles.main}>
+        <main className="main-content" style={{ flex: 1, padding: '24px', backgroundColor: '#f8fafc' }}>
           <Routes>
-            <Route path="/"         element={<Dashboard />} />
-            <Route path="/products" element={<Products />}  />
-            <Route path="/orders"   element={<Orders />}    />
-            <Route path="*"         element={<Navigate to="/" replace />} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>
-    </BrowserRouter>
+    </Router>
   );
 }
 
-const styles = {
-  container: {
-    display: 'flex',
-    minHeight: '100vh',
-  },
-  main: {
-    marginLeft: 240,
-    flex: 1,
-    minHeight: '100vh',
-    background: '#F8FAFC',
-  },
-};  
+export default App;

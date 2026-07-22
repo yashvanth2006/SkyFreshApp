@@ -1,105 +1,89 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const Order = require('../models/Order');
-const User = require('../models/User');
+const Order = require('../models/order');
 
-// ── Auth middleware: verifies JWT and attaches user info to req.user
-function requireAuth(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ success: false, message: 'No token provided' });
-  }
-  const token = authHeader.split(' ')[1];
+// POST /api/orders - Create a new order
+router.post('/', async (req, res) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // { id, phone }
-    next();
-  } catch (err) {
-    return res.status(401).json({ success: false, message: 'Invalid or expired token' });
-  }
-}
-
-// ── PLACE ORDER
-router.post('/', requireAuth, async (req, res) => {
-  try {
-    const { items, subtotal, deliveryFee, total, address } = req.body;
-
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return res.json({ success: false, message: 'Cart is empty' });
-    }
-    if (!address || !address.trim()) {
-      return res.json({ success: false, message: 'Delivery address is required' });
-    }
-
-    const order = new Order({
-      user: req.user.id,
+    const {
+      user,
       items,
+      shippingAddress,
       subtotal,
-      deliveryFee,
+      deliveryCharge,
+      totalAmount,
       total,
-      address: address.trim(),
+      paymentMethod,
+      houseNo,
+      street,
+      city,
+      state,
+      pincode
+    } = req.body;
+
+    // Build shipping address from root body if flat object was passed
+    const formattedAddress = shippingAddress || {
+      houseNo: houseNo || req.body['house_no'] || '',
+      street: street || req.body['address'] || '',
+      city: city || '',
+      state: state || '',
+      pincode: pincode || ''
+    };
+
+    // Calculate or fallback total amount
+    const finalTotal = totalAmount || total || 0;
+
+    // Create new order instance safely
+    const newOrder = new Order({
+      user: user || null,
+      items: items || [],
+      shippingAddress: formattedAddress,
+      subtotal: subtotal || 0,
+      deliveryCharge: deliveryCharge || 0,
+      totalAmount: finalTotal,
+      paymentMethod: paymentMethod || 'Cash on Delivery',
+      status: 'Pending'
     });
-    await order.save();
 
-    const user = await User.findById(req.user.id);
-    if (user) {
-      const trimmed = address.trim();
-      const exists = user.addresses.some((a) => a.line === trimmed);
-      if (!exists) {
-        if (user.addresses.length === 0) {
-          user.addresses.push({ label: 'Home', line: trimmed, isDefault: true });
-        } else {
-          user.addresses.push({ label: 'Saved', line: trimmed, isDefault: false });
-        }
-        await user.save();
-      }
-    }
+    const savedOrder = await newOrder.save();
 
-    res.json({ success: true, message: 'Order placed successfully', order, orderId: order._id });
-
-  } catch (err) {
-    res.json({ success: false, message: 'Server error', error: err.message });
+    return res.status(201).json({
+      success: true,
+      message: 'Order placed successfully!',
+      order: savedOrder
+    });
+  } catch (error) {
+    console.error('CRITICAL: Error placing order:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while placing order',
+      error: error.message
+    });
   }
 });
 
-// ── GET MY ORDERS (order history for logged-in user)
-router.get('/my', requireAuth, async (req, res) => {
-  try {
-    const orders = await Order.find({ user: req.user.id }).sort({ createdAt: -1 });
-    res.json({ success: true, orders });
-  } catch (err) {
-    res.json({ success: false, message: 'Server error', error: err.message });
-  }
-});
-
-// ── GET ALL ORDERS (for admin panel)
+// GET /api/orders - Fetch all orders (For Admin Panel)
 router.get('/', async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 }).populate('user', 'name phone');
-    res.json({ success: true, orders });
-  } catch (err) {
-    res.json({ success: false, message: 'Server error', error: err.message });
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching orders', error: error.message });
   }
 });
 
-// ── UPDATE ORDER STATUS (for admin panel)
+// PATCH /api/orders/:id/status - Update Order Status
 router.patch('/:id/status', async (req, res) => {
   try {
     const { status } = req.body;
-    const validStatuses = ['placed', 'confirmed', 'out_for_delivery', 'delivered', 'cancelled'];
-    if (!validStatuses.includes(status)) {
-      return res.json({ success: false, message: 'Invalid status value' });
-    }
-
-    const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
-    if (!order) {
-      return res.json({ success: false, message: 'Order not found' });
-    }
-
-    res.json({ success: true, message: 'Order status updated', order });
-  } catch (err) {
-    res.json({ success: false, message: 'Server error', error: err.message });
+    const updatedOrder = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    res.json(updatedOrder);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating order status', error: error.message });
   }
 });
 

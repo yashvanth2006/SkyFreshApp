@@ -3,6 +3,20 @@ import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/api_service.dart';
 import 'package:skyfresh/models/user_profile.dart';
 
+// Helper for readable status
+String formatOrderStatus(String status) {
+  return status.split('_').map((w) => w[0].toUpperCase() + w.substring(1)).join(' ');
+}
+
+// Helper for relative time
+String formatRelativeTime(DateTime time) {
+  final diff = DateTime.now().difference(time);
+  if (diff.inDays > 0) return '${diff.inDays} day${diff.inDays == 1 ? '' : 's'} ago';
+  if (diff.inHours > 0) return '${diff.inHours} hour${diff.inHours == 1 ? '' : 's'} ago';
+  if (diff.inMinutes > 0) return '${diff.inMinutes} minute${diff.inMinutes == 1 ? '' : 's'} ago';
+  return 'Just now';
+}
+
 class MyOrdersScreen extends StatefulWidget {
   const MyOrdersScreen({super.key});
 
