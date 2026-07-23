@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenAI } = require('@google/genai');
 
 // Verify API key and initialize Gemini AI
 if (!process.env.GEMINI_API_KEY) {
   console.warn('\x1b[33m%s\x1b[0m', '⚠️  WARNING: GEMINI_API_KEY is not set in .env file. AI features will not work properly.');
 }
 
-const genAI = process.env.GEMINI_API_KEY 
-  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+// Initialize the NEW SDK correctly
+const ai = process.env.GEMINI_API_KEY 
+  ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
   : null;
 
 // POST /api/ai/chat - AI Nutritionist endpoint
@@ -25,7 +26,7 @@ router.post('/chat', async (req, res) => {
     }
 
     // Check if API key is available
-    if (!genAI) {
+    if (!ai) {
       return res.status(500).json({
         success: false,
         message: 'AI service is not configured. Please add GEMINI_API_KEY to environment variables.'
@@ -46,13 +47,6 @@ router.post('/chat', async (req, res) => {
 
     // Use real AI with proper guardrails
     try {
-      const model = genAI.getGenerativeModel({ 
-        model: 'gemini-1.5-pro',
-        generationConfig: {
-          responseMimeType: "application/json",
-        }
-      });
-      
       const prompt = `You are a friendly Smart Nutritionist for the SkyFresh app, a fresh fruit and juice delivery service.
 
 CONVERSATIONAL: If the user says "hello", "hi", "how are you", or similar greetings, respond naturally and warmly.
@@ -73,8 +67,17 @@ Reply with a JSON object containing exactly these two fields:
 
 IMPORTANT: Only recommend items from the provided inventory list. Return ONLY valid JSON, no additional text or markdown formatting.`;
 
-      const result = await model.generateContent(prompt);
-      let rawText = result.response.text();
+      // Call the AI using the new SDK syntax and the active 2026 model
+      const result = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json"
+        }
+      });
+      
+      // The new SDK uses .text instead of .text()
+      let rawText = result.text;
       
       // Remove markdown code blocks if present
       rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
