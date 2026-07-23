@@ -54,6 +54,14 @@ router.post('/', async (req, res) => {
   try {
     const productData = req.body;
     
+    // Add default values for missing required fields
+    if (!productData.emoji) {
+      productData.emoji = '🍎'; // Default emoji
+    }
+    if (!productData.color) {
+      productData.color = '#DCFCE7'; // Default color
+    }
+    
     // If no image is provided, fetch one from Pexels
     if (!productData.image || productData.image.trim() === '') {
       const pexelsImage = await fetchPexelsImage(productData.name);
@@ -66,10 +74,11 @@ router.post('/', async (req, res) => {
     }
     
     const product = new Product(productData);
-    await product.save();
-    res.json({ success: true, product });
+    const savedProduct = await product.save();
+    res.status(201).json({ success: true, product: savedProduct });
   } catch (err) {
-    res.json({ success: false, message: err.message });
+    console.error('Error saving product:', err);
+    res.status(400).json({ success: false, message: err.message });
   }
 });
 
