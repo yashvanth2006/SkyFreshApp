@@ -47,7 +47,7 @@ router.post('/chat', async (req, res) => {
     // Use real AI with proper guardrails
     try {
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-1.5-flash',
+        model: 'gemini-1.5-pro',
         generationConfig: {
           responseMimeType: "application/json",
         }
@@ -74,14 +74,17 @@ Reply with a JSON object containing exactly these two fields:
 IMPORTANT: Only recommend items from the provided inventory list. Return ONLY valid JSON, no additional text or markdown formatting.`;
 
       const result = await model.generateContent(prompt);
-      const responseText = result.response.text();
+      let rawText = result.response.text();
+      
+      // Remove markdown code blocks if present
+      rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
       
       // Parse AI response
       let aiResponse;
       try {
-        aiResponse = JSON.parse(responseText);
+        aiResponse = JSON.parse(rawText);
       } catch (parseError) {
-        console.error('Failed to parse AI response as JSON:', responseText);
+        console.error('Failed to parse AI response as JSON:', rawText);
         throw new Error('Invalid AI response format');
       }
 
@@ -102,18 +105,20 @@ IMPORTANT: Only recommend items from the provided inventory list. Return ONLY va
       });
 
     } catch (aiError) {
-      console.error('AI API error:', aiError.message);
+      console.error('AI Route Error:', aiError.message, aiError);
       return res.status(500).json({
         success: false,
-        message: 'AI service temporarily unavailable. Please try again later.'
+        message: 'AI Error: ' + aiError.message,
+        recommendedProducts: []
       });
     }
 
   } catch (err) {
-    console.error('AI route error:', err);
+    console.error('AI Route Error:', err.message, err);
     res.status(500).json({ 
       success: false, 
-      message: 'Failed to process your request' 
+      message: 'AI Error: ' + err.message,
+      recommendedProducts: []
     });
   }
 });
