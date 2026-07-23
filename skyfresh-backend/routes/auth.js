@@ -1,36 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const Order = require('../models/Order');
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-function getToken(req) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-  return authHeader.split(' ')[1];
-}
-
-function requireAuth(req, res, next) {
-  const token = getToken(req);
-  if (!token) return res.status(401).json({ success: false, message: 'No token provided' });
-  try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
-    next();
-  } catch (err) {
-    return res.status(401).json({ success: false, message: 'Invalid or expired token' });
-  }
-}
+const { requireAuth } = require('./middleware');
 
 function formatUser(user, stats = {}) {
   return {
     id: user._id,
     name: user.name,
     phone: user.phone,
-    email: user.email, // NEW: Added email to formatting
     joinedAt: user.createdAt,
     addresses: (user.addresses || []).map((a) => ({
       id: a._id, label: a.label, line: a.line, isDefault: a.isDefault,
@@ -39,46 +18,48 @@ function formatUser(user, stats = {}) {
   };
 }
 
-router.post('/register', async (req, res) => {
+// POST /api/auth/send-otp - Send OTP to phone number
+router.post('/send-otp', async (req, res) => {
   try {
-    const { name, phone, password } = req.body;
+    const { phone } = req.body;
     
-    // Check if user already exists
-    const existingUser = await User.findOne({ phone });
-    if (existingUser) {
-      return res.json({ success: false, message: 'User already exists with this phone number' });
+    if (!phone) {
+      return res.json({ success: false, message: 'Phone number is required' });
     }
     
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Check if user exists, if not create them
+    let user = await User.findOne({ phone });
+    if (!user) {
+      user = new User({
+        phone,
+        isVerified: false
+      });
+    }
     
-    // Create new user
-    const user = new User({
-      name,
-      phone,
-      password: hashedPassword,
-      isVerified: false
-    });
-    
-    await user.save();
-    
-    // Generate OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate 4-digit OTP
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
     user.otp = otp;
     user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     await user.save();
     
     // In production, send OTP via SMS
-    res.json({ success: true, message: 'Registration successful. Please verify OTP.' });
+    console.log(`📱 OTP for ${phone}: ${otp}`);
+    
+    res.json({ success: true, message: 'OTP sent successfully' });
     
   } catch (err) {
-    res.json({ success: false, message: 'Registration failed', error: err.message });
+    res.json({ success: false, message: 'Failed to send OTP', error: err.message });
   }
 });
 
+// POST /api/auth/verify-otp - Verify OTP and login
 router.post('/verify-otp', async (req, res) => {
   try {
     const { phone, otp } = req.body;
+    
+    if (!phone || !otp) {
+      return res.json({ success: false, message: 'Phone and OTP are required' });
+    }
     
     const user = await User.findOne({ phone });
     if (!user) {
@@ -105,85 +86,6 @@ router.post('/verify-otp', async (req, res) => {
     
   } catch (err) {
     res.json({ success: false, message: 'OTP verification failed', error: err.message });
-  }
-});
-
-router.post('/login', async (req, res) => {
-  try {
-    const { phone, password } = req.body;
-    
-    const user = await User.findOne({ phone });
-    if (!user) {
-      return res.json({ success: false, message: 'User not found' });
-    }
-    
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.json({ success: false, message: 'Invalid password' });
-    }
-    
-    // Generate token
-    const token = jwt.sign(
-      { id: user._id, phone: user.phone },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-    
-    res.json({ success: true, message: 'Login successful', token, user: formatUser(user) });
-    
-  } catch (err) {
-    res.json({ success: false, message: 'Login failed', error: err.message });
-  }
-});
-
-// ==========================================
-// GOOGLE SIGN-IN ROUTE
-// ==========================================
-router.post('/google-login', async (req, res) => {
-  try {
-    const { idToken } = req.body;
-    
-    // 1. Verify token with Google
-    const ticket = await client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    
-    const { email, name } = ticket.getPayload();
-
-    // 2. Check if user exists by email
-    let user = await User.findOne({ email });
-
-    // 3. If new user, register them automatically
-    if (!user) {
-      const randomPassword = await bcrypt.hash(Math.random().toString(36), 10);
-      user = new User({
-        name,
-        email,
-        // Generate a placeholder phone so it doesn't crash your current DB schema
-        phone: 'GGL_' + Date.now().toString().slice(-7), 
-        password: randomPassword,
-        isVerified: true, // Google emails are already verified
-      });
-      await user.save();
-    }
-
-    // 4. Generate JWT matching your existing logic
-    const token = jwt.sign(
-      { id: user._id, phone: user.phone }, 
-      process.env.JWT_SECRET, 
-      { expiresIn: '7d' }
-    );
-
-    res.json({ 
-      success: true, 
-      message: 'Google login successful', 
-      token, 
-      user: formatUser(user) 
-    });
-
-  } catch (err) {
-    res.json({ success: false, message: 'Google authentication failed', error: err.message });
   }
 });
 

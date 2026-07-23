@@ -4,25 +4,31 @@ const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Name is required'],
       trim: true
     },
-    email: {
+    phone: {
       type: String,
-      required: [true, 'Email is required'],
+      required: [true, 'Phone number is required'],
       unique: true,
-      lowercase: true,
       trim: true
     },
-    password: {
+    otp: {
       type: String,
-      required: [true, 'Password is required']
+      default: null
     },
-    role: {
-      type: String,
-      enum: ['Customer', 'Admin'],
-      default: 'Customer'
-    }
+    otpExpiry: {
+      type: Date,
+      default: null
+    },
+    isVerified: {
+      type: Boolean,
+      default: false
+    },
+    addresses: [{
+      label: { type: String, default: 'Home', trim: true },
+      line: { type: String, required: true, trim: true },
+      isDefault: { type: Boolean, default: false },
+    }],
   },
   {
     timestamps: true

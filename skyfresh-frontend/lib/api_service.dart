@@ -19,34 +19,16 @@ class ApiService {
     return token != null && token.isNotEmpty;
   }
 
-  static Future<Map<String, dynamic>> login({String? phone, String? password}) async {
+  static Future<Map<String, dynamic>> sendOtp(String phone) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/auth/login'),
+        Uri.parse('$baseUrl/auth/send-otp'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': phone ?? '', 'password': password ?? ''}),
-      );
-      final data = jsonDecode(response.body);
-      if (data['success'] == true && data['token'] != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_token', data['token']);
-      }
-      return data;
-    } catch (e) {
-      return {'success': false, 'message': 'Login connection failed'};
-    }
-  }
-
-  static Future<Map<String, dynamic>> registerUser(String name, String phone, String password) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/register'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'name': name, 'phone': phone, 'password': password}),
+        body: jsonEncode({'phone': phone}),
       );
       return jsonDecode(response.body);
     } catch (e) {
-      return {'success': false, 'message': 'Registration connection failed'};
+      return {'success': false, 'message': 'Failed to send OTP'};
     }
   }
 
