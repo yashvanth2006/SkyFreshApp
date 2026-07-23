@@ -3,7 +3,11 @@ const router = express.Router();
 const Product = require('../models/Product');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Initialize Gemini AI
+// Verify API key and initialize Gemini AI
+if (!process.env.GEMINI_API_KEY) {
+  console.warn('\x1b[33m%s\x1b[0m', '⚠️  WARNING: GEMINI_API_KEY is not set in .env file. AI features will not work properly.');
+}
+
 const genAI = process.env.GEMINI_API_KEY 
   ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
   : null;
@@ -20,6 +24,14 @@ router.post('/chat', async (req, res) => {
       });
     }
 
+    // Check if API key is available
+    if (!genAI) {
+      return res.status(500).json({
+        success: false,
+        message: 'AI service is not configured. Please add GEMINI_API_KEY to environment variables.'
+      });
+    }
+
     // Fetch all products from database
     const products = await Product.find({});
     
@@ -32,53 +44,70 @@ router.post('/chat', async (req, res) => {
       unit: p.unit
     }));
 
-    let aiResponse;
-    
-    if (genAI) {
-      // Use real AI if API key is available
-      try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        
-        const prompt = `You are a helpful nutritionist for a fresh fruit and juice app called SkyFresh. The user asked: "${query}". 
+    // Use real AI with proper guardrails
+    try {
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-1.5-flash',
+        generationConfig: {
+          responseMimeType: "application/json",
+        }
+      });
+      
+      const prompt = `You are a friendly Smart Nutritionist for the SkyFresh app, a fresh fruit and juice delivery service.
 
-Here is our current inventory in JSON format:
+CONVERSATIONAL: If the user says "hello", "hi", "how are you", or similar greetings, respond naturally and warmly.
+
+MEDICAL GUARDRAILS (CRITICAL): 
+- If the user mentions serious illnesses (e.g., cancer, diabetes, heart disease, hypertension, kidney disease, liver disease, autoimmune disorders, etc.), you MUST state that you are NOT a doctor.
+- Advise them to consult a medical professional for proper medical advice.
+- Kindly explain that you can only recommend general healthy fruits from our inventory, not medical treatments.
+
+CONTEXT: Here is our current inventory in JSON format:
 ${JSON.stringify(productList, null, 2)}
 
-Reply with a JSON object containing two fields:
-1. "message" - a short, friendly response (2-3 sentences) explaining why certain items help with the user's condition
-2. "recommendedProductIds" - an array of the MongoDB _ids (as strings) of the best matching products from our inventory that would help the user
+The user asked: "${query}"
 
-Return ONLY valid JSON, no additional text.`;
+Reply with a JSON object containing exactly these two fields:
+1. "message" - a short, friendly response (2-3 sentences) explaining your recommendation or greeting
+2. "recommendedProductIds" - an array of the MongoDB _ids (as strings) of the best matching products from our inventory. Return an empty array [] if no products match or if the query is just a greeting.
 
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
-        
-        // Parse AI response
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          aiResponse = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error('Invalid AI response format');
-        }
-      } catch (aiError) {
-        console.error('AI API error, using fallback:', aiError.message);
-        aiResponse = generateFallbackResponse(query, products);
+IMPORTANT: Only recommend items from the provided inventory list. Return ONLY valid JSON, no additional text or markdown formatting.`;
+
+      const result = await model.generateContent(prompt);
+      const responseText = result.response.text();
+      
+      // Parse AI response
+      let aiResponse;
+      try {
+        aiResponse = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse AI response as JSON:', responseText);
+        throw new Error('Invalid AI response format');
       }
-    } else {
-      // Fallback if no API key
-      aiResponse = generateFallbackResponse(query, products);
+
+      // Validate response structure
+      if (!aiResponse.message || !Array.isArray(aiResponse.recommendedProductIds)) {
+        throw new Error('AI response missing required fields');
+      }
+
+      // Fetch full product details for recommended IDs
+      const recommendedProducts = await Product.find({
+        _id: { $in: aiResponse.recommendedProductIds }
+      });
+
+      res.json({
+        success: true,
+        message: aiResponse.message,
+        recommendedProducts
+      });
+
+    } catch (aiError) {
+      console.error('AI API error:', aiError.message);
+      return res.status(500).json({
+        success: false,
+        message: 'AI service temporarily unavailable. Please try again later.'
+      });
     }
-
-    // Fetch full product details for recommended IDs
-    const recommendedProducts = await Product.find({
-      _id: { $in: aiResponse.recommendedProductIds }
-    });
-
-    res.json({
-      success: true,
-      message: aiResponse.message,
-      recommendedProducts
-    });
 
   } catch (err) {
     console.error('AI route error:', err);
@@ -88,50 +117,5 @@ Return ONLY valid JSON, no additional text.`;
     });
   }
 });
-
-// Fallback response generator for when AI is unavailable
-function generateFallbackResponse(query, products) {
-  const queryLower = query.toLowerCase();
-  let message = '';
-  let recommendedIds = [];
-
-  // Simple keyword matching for fallback
-  if (queryLower.includes('cold') || queryLower.includes('sick') || queryLower.includes('flu')) {
-    message = 'For cold and flu symptoms, I recommend vitamin C-rich fruits like oranges and citrus juices. These will help boost your immune system!';
-    const citrusProducts = products.filter(p => 
-      p.name.toLowerCase().includes('orange') || 
-      p.name.toLowerCase().includes('citrus') ||
-      p.category.toLowerCase().includes('juices')
-    );
-    recommendedIds = citrusProducts.slice(0, 2).map(p => p._id.toString());
-  } else if (queryLower.includes('detox') || queryLower.includes('cleanse')) {
-    message = 'A detox is great! I recommend fresh fruits and natural juices that help cleanse your system. Green juices and antioxidant-rich fruits are perfect!';
-    const detoxProducts = products.filter(p => 
-      p.category.toLowerCase().includes('fruits') ||
-      p.category.toLowerCase().includes('juices')
-    );
-    recommendedIds = detoxProducts.slice(0, 2).map(p => p._id.toString());
-  } else if (queryLower.includes('energy') || queryLower.includes('tired')) {
-    message = 'To boost your energy, try natural fruits and fresh juices! They provide quick energy and essential nutrients without the crash.';
-    const energyProducts = products.filter(p => 
-      p.category.toLowerCase().includes('fruits') ||
-      p.category.toLowerCase().includes('juices')
-    );
-    recommendedIds = energyProducts.slice(0, 2).map(p => p._id.toString());
-  } else {
-    message = 'Based on your query, I recommend some fresh fruits and juices from our inventory. These are packed with nutrients and perfect for a healthy lifestyle!';
-    recommendedIds = products.slice(0, 2).map(p => p._id.toString());
-  }
-
-  // Fallback if no products matched
-  if (recommendedIds.length === 0 && products.length > 0) {
-    recommendedIds = products.slice(0, 2).map(p => p._id.toString());
-  }
-
-  return {
-    message,
-    recommendedProductIds: recommendedIds
-  };
-}
 
 module.exports = router;
