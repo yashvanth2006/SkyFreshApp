@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:skyfresh/api_service.dart';
 import 'package:skyfresh/theme.dart';
-import 'login_screen.dart';
+import 'auth_screen.dart';
 import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -45,7 +45,7 @@ class _SplashScreenState extends State<SplashScreen>
       } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          MaterialPageRoute(builder: (_) => const AuthScreen()),
         );
       }
     });
