@@ -5,25 +5,9 @@ const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const Order = require('../models/Order');
+const { requireAuth } = require('./middleware');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-function getToken(req) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-  return authHeader.split(' ')[1];
-}
-
-function requireAuth(req, res, next) {
-  const token = getToken(req);
-  if (!token) return res.status(401).json({ success: false, message: 'No token provided' });
-  try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
-    next();
-  } catch (err) {
-    return res.status(401).json({ success: false, message: 'Invalid or expired token' });
-  }
-}
 
 function formatUser(user, stats = {}) {
   return {
