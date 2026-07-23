@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class CartItem {
   final String name;
@@ -19,16 +21,64 @@ class CartItem {
 
   int get priceInt => int.parse(price.replaceAll('₹', ''));
   int get total => priceInt * quantity;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'price': price,
+      'emoji': emoji,
+      'unit': unit,
+      'weight': weight,
+      'quantity': quantity,
+    };
+  }
+
+  factory CartItem.fromJson(Map<String, dynamic> json) {
+    return CartItem(
+      name: json['name'],
+      price: json['price'],
+      emoji: json['emoji'],
+      unit: json['unit'],
+      weight: json['weight'],
+      quantity: json['quantity'] ?? 1,
+    );
+  }
 }
 
 class CartProvider extends ChangeNotifier {
   final List<CartItem> _items = [];
+  static const String _cartKey = 'skyfresh_cart';
 
   List<CartItem> get items => _items;
 
   int get totalItems => _items.fold(0, (sum, item) => sum + item.quantity);
 
   int get totalPrice => _items.fold(0, (sum, item) => sum + item.total);
+
+  CartProvider() {
+    _loadCart();
+  }
+
+  Future<void> _loadCart() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cartJson = prefs.getString(_cartKey);
+    if (cartJson != null) {
+      try {
+        final List<dynamic> decoded = jsonDecode(cartJson);
+        _items.clear();
+        _items.addAll(decoded.map((item) => CartItem.fromJson(item)));
+        notifyListeners();
+      } catch (e) {
+        print('Error loading cart: $e');
+      }
+    }
+  }
+
+  Future<void> _saveCart() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cartJson = jsonEncode(_items.map((item) => item.toJson()).toList());
+    await prefs.setString(_cartKey, cartJson);
+  }
 
   void addItem(Map<String, dynamic> product, {String? weight}) {
     final selectedWeight = weight ?? (product['category'] == 'Fruits' ? '250g' : product['unit'].toString());
@@ -51,6 +101,7 @@ class CartProvider extends ChangeNotifier {
       ));
     }
     notifyListeners();
+    _saveCart();
   }
 
   int _gramsIn(String value) {
@@ -63,12 +114,14 @@ class CartProvider extends ChangeNotifier {
   void removeItem(String name, String weight) {
     _items.removeWhere((i) => i.name == name && i.weight == weight);
     notifyListeners();
+    _saveCart();
   }
 
   void increment(String name, String weight) {
     final item = _items.firstWhere((i) => i.name == name && i.weight == weight);
     item.quantity++;
     notifyListeners();
+    _saveCart();
   }
 
   void decrement(String name, String weight) {
@@ -79,10 +132,12 @@ class CartProvider extends ChangeNotifier {
       _items.remove(item);
     }
     notifyListeners();
+    _saveCart();
   }
 
   void clear() {
     _items.clear();
     notifyListeners();
+    _saveCart();
   }
 }
