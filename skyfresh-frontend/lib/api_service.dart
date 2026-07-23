@@ -232,4 +232,27 @@ class ApiService {
       return {'success': false, 'message': 'Order placement failed'};
     }
   }
+
+  static Future<Map<String, dynamic>> askNutritionist(String query) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/ai/chat'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'query': query}),
+      );
+      final data = jsonDecode(response.body);
+      
+      if (data['success'] == true) {
+        return {
+          'success': true,
+          'message': data['message'],
+          'recommendedProducts': data['recommendedProducts'] ?? [],
+        };
+      }
+      return {'success': false, 'message': data['message'] ?? 'Failed to get recommendations'};
+    } catch (e) {
+      print('Error asking nutritionist: $e');
+      return {'success': false, 'message': 'Connection failed'};
+    }
+  }
 }
