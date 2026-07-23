@@ -21,13 +21,9 @@ const Products = () => {
       const data = await res.json();
       console.log('Fetched data:', data);
       
-      // Handle both array and object response formats
+      // Handle array response
       if (Array.isArray(data)) {
         setProducts(data);
-      } else if (data.success && data.products) {
-        setProducts(data.products);
-      } else if (data.products) {
-        setProducts(data.products);
       } else {
         setProducts([]);
       }

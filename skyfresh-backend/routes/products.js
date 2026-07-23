@@ -43,9 +43,9 @@ router.get('/', async (req, res) => {
 
     // 3. Fetch products based on the built query
     const products = await Product.find(query);
-    res.json({ success: true, products });
+    res.json(products);
   } catch (err) {
-    res.json({ success: false, message: err.message });
+    res.status(500).json({ message: err.message });
   }
 });
 

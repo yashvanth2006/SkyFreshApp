@@ -111,8 +111,9 @@ class ApiService {
       final response = await http.get(Uri.parse(url));
       final data = jsonDecode(response.body);
       
-      if (data['success'] == true) {
-        return data['products'];
+      // Handle array response directly
+      if (data is List) {
+        return data;
       }
       return [];
     } catch (e) {
