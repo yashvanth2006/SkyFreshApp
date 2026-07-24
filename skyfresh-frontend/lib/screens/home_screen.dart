@@ -945,6 +945,29 @@ class _ProductDetailSheet extends StatefulWidget {
 class _ProductDetailSheetState extends State<_ProductDetailSheet> {
   String _weight = '250g';
 
+  int _gramsIn(String value) {
+    final match = RegExp(r'(\d+)\s*g', caseSensitive: false).firstMatch(value);
+    if (match != null) return int.parse(match.group(1)!);
+    final kg = RegExp(r'(\d+)\s*kg', caseSensitive: false).firstMatch(value);
+    return kg == null ? 0 : int.parse(kg.group(1)!) * 1000;
+  }
+
+  String get _calculatedPrice {
+    final product = widget.product;
+    final supportsWeight = product['category'] == 'Fruits';
+    if (!supportsWeight) return product['price'];
+
+    final baseWeight = _gramsIn(product['unit'].toString());
+    final requestedWeight = _gramsIn(_weight);
+    final basePrice = int.parse(product['price'].toString().replaceAll(RegExp(r'[^0-9]'), ''));
+
+    if (baseWeight > 0 && requestedWeight > 0) {
+      final price = (basePrice * requestedWeight / baseWeight).round();
+      return '₹$price';
+    }
+    return product['price'];
+  }
+
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
@@ -988,12 +1011,12 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800,
                           letterSpacing: -0.4, color: AppTheme.textMain)),
                     const SizedBox(height: 4),
-                    Text('${product['category']} • ${product['unit']}',
+                    Text('${product['category']} • ${supportsWeight ? _weight : product['unit']}',
                       style: const TextStyle(color: AppTheme.textMuted, fontSize: 14, fontWeight: FontWeight.w500)),
                   ],
                 ),
               ),
-              Text(product['price'],
+              Text(_calculatedPrice,
                 style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppTheme.primaryLight)),
             ],
           ),
