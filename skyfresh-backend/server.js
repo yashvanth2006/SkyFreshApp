@@ -26,6 +26,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/users', authRouter); // Uses authRouter correctly
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
+app.use('/api/admin', require('./routes/admin'));
 app.use('/api/ai', require('./routes/ai'));
 
 const PORT = process.env.PORT || 5000;

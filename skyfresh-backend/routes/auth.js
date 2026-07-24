@@ -10,6 +10,7 @@ function formatUser(user, stats = {}) {
     id: user._id,
     name: user.name,
     phone: user.phone,
+    role: user.role,
     joinedAt: user.createdAt,
     addresses: (user.addresses || []).map((a) => ({
       id: a._id, label: a.label, line: a.line, isDefault: a.isDefault,

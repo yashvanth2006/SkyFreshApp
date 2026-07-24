@@ -105,11 +105,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
     setState(() => _processingPayment = false);
-    _verifyAndPlaceOrder(response.orderId, response.paymentId, response.signature);
+    
+    if (response.orderId == null || response.paymentId == null || response.signature == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Payment verification failed: Missing payment details')),
+      );
+      return;
+    }
+    
+    _verifyAndPlaceOrder(response.orderId!, response.paymentId!, response.signature!);
   }
 
   void _handlePaymentSuccessWeb(dynamic response) {
-    _verifyAndPlaceOrder(response['razorpay_order_id'], response['razorpay_payment_id'], response['razorpay_signature']);
+    final orderId = response['razorpay_order_id']?.toString();
+    final paymentId = response['razorpay_payment_id']?.toString();
+    final signature = response['razorpay_signature']?.toString();
+    
+    if (orderId == null || paymentId == null || signature == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Payment verification failed: Missing payment details')),
+      );
+      return;
+    }
+    
+    _verifyAndPlaceOrder(orderId, paymentId, signature);
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
