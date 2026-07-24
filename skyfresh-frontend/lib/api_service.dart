@@ -187,9 +187,9 @@ class ApiService {
   static Future<Map<String, dynamic>> placeOrder({
     required List<Map<String, dynamic>> items,
     required num subtotal,
-    required num deliveryFee,
-    required num total,
-    required String address,
+    required num deliveryCharge,
+    required num totalAmount,
+    required String shippingAddress,
     String? paymentMethod, 
   }) async {
     try {
@@ -203,9 +203,9 @@ class ApiService {
         body: jsonEncode({
           'items': items,
           'subtotal': subtotal,
-          'deliveryFee': deliveryFee,
-          'total': total,
-          'address': address,
+          'deliveryCharge': deliveryCharge,
+          'totalAmount': totalAmount,
+          'shippingAddress': shippingAddress,
           'paymentMethod': paymentMethod ?? 'Cash on Delivery',
         }),
       );
@@ -235,6 +235,95 @@ class ApiService {
     } catch (e) {
       print('Error asking nutritionist: $e');
       return {'success': false, 'message': 'Connection failed'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> createRazorpayOrder(double amount) async {
+    try {
+      final token = await getToken();
+      final response = await http.post(
+        Uri.parse('$baseUrl/payments/create-order'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'amount': amount}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to create payment order'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> verifyPayment(String orderId, String paymentId, String signature) async {
+    try {
+      final token = await getToken();
+      final response = await http.post(
+        Uri.parse('$baseUrl/payments/verify'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'razorpay_order_id': orderId,
+          'razorpay_payment_id': paymentId,
+          'razorpay_signature': signature,
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Payment verification failed'};
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchAllOrders() async {
+    try {
+      final token = await getToken();
+      final response = await http.get(
+        Uri.parse('$baseUrl/admin/orders'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['orders'] != null) {
+        return List<Map<String, dynamic>>.from(data['orders']);
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateOrderStatus(String orderId, String status) async {
+    try {
+      final token = await getToken();
+      final response = await http.put(
+        Uri.parse('$baseUrl/admin/orders/$orderId/status'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'status': status}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to update order status'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateFcmToken(String fcmToken) async {
+    try {
+      final token = await getToken();
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/fcm-token'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'fcmToken': fcmToken}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to save FCM token'};
     }
   }
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "392048098425",
+    "project_id": "skyfresh-3ddad",
+    "storage_bucket": "skyfresh-3ddad.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:392048098425:android:5b71912a0d8f886809a8a8",
+        "android_client_info": {
+          "package_name": "com.example.skyfresh"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhjuA8mWA5wv2azz4wikisliezetECmus"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

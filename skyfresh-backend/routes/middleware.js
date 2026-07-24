@@ -15,4 +15,17 @@ function requireAuth(req, res, next) {
   }
 }
 
-module.exports = { requireAuth };
+async function requireAdmin(req, res, next) {
+  const User = require('../models/user');
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Admin access required' });
+    }
+    next();
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Error verifying admin status' });
+  }
+}
+
+module.exports = { requireAuth, requireAdmin };

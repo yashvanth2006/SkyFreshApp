@@ -1,46 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
+const { requireAuth } = require('./middleware');
 
-// POST /api/orders - Create a new order
-router.post('/', async (req, res) => {
+// POST /api/orders - Create a new order (protected)
+router.post('/', requireAuth, async (req, res) => {
   try {
-    const {
-      user,
-      items,
-      shippingAddress,
-      subtotal,
-      deliveryCharge,
-      totalAmount,
-      total,
-      paymentMethod,
-      houseNo,
-      street,
-      city,
-      state,
-      pincode
-    } = req.body;
+    const { items, shippingAddress, subtotal, deliveryCharge, totalAmount, paymentMethod } = req.body;
 
-    // Build shipping address from root body if flat object was passed
-    const formattedAddress = shippingAddress || {
-      houseNo: houseNo || req.body['house_no'] || '',
-      street: street || req.body['address'] || '',
-      city: city || '',
-      state: state || '',
-      pincode: pincode || ''
-    };
-
-    // Calculate or fallback total amount
-    const finalTotal = totalAmount || total || 0;
-
-    // Create new order instance safely
+    // Create new order with authenticated user
     const newOrder = new Order({
-      user: user || null,
+      userId: req.user.id,
       items: items || [],
-      shippingAddress: formattedAddress,
+      shippingAddress: shippingAddress || '',
       subtotal: subtotal || 0,
       deliveryCharge: deliveryCharge || 0,
-      totalAmount: finalTotal,
+      totalAmount: totalAmount || 0,
       paymentMethod: paymentMethod || 'Cash on Delivery',
       status: 'Pending'
     });
@@ -53,12 +28,21 @@ router.post('/', async (req, res) => {
       order: savedOrder
     });
   } catch (error) {
-    console.error('CRITICAL: Error placing order:', error);
     return res.status(500).json({
       success: false,
       message: 'Server error while placing order',
       error: error.message
     });
+  }
+});
+
+// GET /api/orders/my - Fetch current user's orders (protected)
+router.get('/my', requireAuth, async (req, res) => {
+  try {
+    const orders = await Order.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    res.json({ success: true, orders });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching orders', error: error.message });
   }
 });
 

@@ -2,9 +2,23 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const admin = require('firebase-admin');
 
 const paymentRoutes = require('./routes/paymentRoutes');
 const { router: authRouter } = require('./routes/auth');
+
+// Initialize Firebase Admin SDK (with fallback if service account is missing)
+let firebaseAdmin = null;
+try {
+  const serviceAccount = require('./firebase-service-account.json');
+  firebaseAdmin = admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+  console.log('Firebase Admin SDK initialized');
+} catch (err) {
+  console.log('Firebase Admin SDK not initialized (firebase-service-account.json not found)');
+  console.log('FCM notifications will be disabled');
+}
 
 const app = express();
 
@@ -26,7 +40,11 @@ app.use('/api/auth', authRouter);
 app.use('/api/users', authRouter); // Uses authRouter correctly
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
+app.use('/api/admin', require('./routes/admin'));
 app.use('/api/ai', require('./routes/ai'));
+
+// Make firebase admin available globally for routes
+global.firebaseAdmin = firebaseAdmin;
 
 const PORT = process.env.PORT || 5000;
 
@@ -38,4 +56,8 @@ mongoose
     console.log('Connected to MongoDB');
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
-  .catch((err) => console.error('MongoDB connection error:', err));
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+    console.log('Attempting to start server anyway...');
+    app.listen(PORT, () => console.log(`Server running on port ${PORT} (without database)`));
+  });

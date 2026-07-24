@@ -11,6 +11,8 @@ import 'package:skyfresh/screens/my_addresses_screen.dart';
 import 'package:skyfresh/screens/help_support_screen.dart';
 import 'package:skyfresh/screens/auth_screen.dart';
 import 'package:skyfresh/screens/ai_screen.dart';
+import 'package:skyfresh/screens/admin_dashboard.dart';
+import 'package:skyfresh/services/notification_service.dart';
 import 'cart_screen.dart';
 import 'notifications_screen.dart';
 
@@ -49,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadUser();
     _fetchDynamicProducts();
+    _initializeNotifications();
   }
 
   @override
@@ -82,6 +85,14 @@ class _HomeScreenState extends State<HomeScreen> {
         _userName = profile.name;
       }
     });
+  }
+
+  Future<void> _initializeNotifications() async {
+    try {
+      await NotificationService().initialize();
+    } catch (e) {
+      print('Error initializing notifications: $e');
+    }
   }
 
   Future<void> _logout() async {
@@ -587,6 +598,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final phone = _profile?.phone ?? '';
     final orderCount = _profile?.orderCount ?? 0;
     final addressCount = _profile?.addresses.length ?? 0;
+    final role = _profile?.role;
+
+    print('Current User Role: $role');
 
     return RefreshIndicator(
       color: AppTheme.primary,
@@ -676,6 +690,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: addressCount == 0 ? 'Add a delivery address' : '$addressCount saved',
                   onTap: _openAddresses,
                 ),
+                if (_profile?.role == 'admin')
+                  _profileTile(
+                    Icons.admin_panel_settings_rounded,
+                    'Admin Dashboard',
+                    subtitle: 'Manage store orders',
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminDashboard())),
+                  ),
                 _profileTile(
                   Icons.help_outline_rounded,
                   'Help & Support',

@@ -2,25 +2,24 @@ const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema(
   {
-    user: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: false // Set to false so guest orders don't throw 500 errors
+      required: true
     },
     items: [
       {
         name: { type: String, required: true },
         price: { type: Number, required: true },
         quantity: { type: Number, required: true, default: 1 },
+        unit: { type: String, required: true },
+        emoji: { type: String, required: true },
         product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: false }
       }
     ],
     shippingAddress: {
-      houseNo: { type: String },
-      street: { type: String },
-      city: { type: String },
-      state: { type: String },
-      pincode: { type: String }
+      type: String,
+      required: true
     },
     subtotal: {
       type: Number,

@@ -105,12 +105,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
     setState(() => _processingPayment = false);
-    _placeOrder();
+    
+    if (response.orderId == null || response.paymentId == null || response.signature == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Payment verification failed: Missing payment details')),
+      );
+      return;
+    }
+    
+    _verifyAndPlaceOrder(response.orderId!, response.paymentId!, response.signature!);
   }
 
   void _handlePaymentSuccessWeb(dynamic response) {
-    setState(() => _processingPayment = false);
-    _placeOrder();
+    final orderId = response['razorpay_order_id']?.toString();
+    final paymentId = response['razorpay_payment_id']?.toString();
+    final signature = response['razorpay_signature']?.toString();
+    
+    if (orderId == null || paymentId == null || signature == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Payment verification failed: Missing payment details')),
+      );
+      return;
+    }
+    
+    _verifyAndPlaceOrder(orderId, paymentId, signature);
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
@@ -127,13 +145,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  Future<void> _verifyAndPlaceOrder(String orderId, String paymentId, String signature) async {
+    setState(() => _processingPayment = true);
+
+    // Step 2: Verify payment with backend
+    final verifyRes = await ApiService.verifyPayment(orderId, paymentId, signature);
+
+    if (!mounted) return;
+
+    if (verifyRes['success'] != true) {
+      setState(() => _processingPayment = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(verifyRes['message'] ?? 'Payment verification failed')),
+      );
+      return;
+    }
+
+    // Step 3: Place order with payment status
+    await _placeOrder();
+  }
+
   void _handleExternalWallet(ExternalWalletResponse response) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('External wallet selected: ${response.walletName}')),
     );
   }
 
-  void _openRazorpay() {
+  void _openRazorpay() async {
     final cart = context.read<CartProvider>();
     if (cart.items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cart is empty')));
@@ -144,16 +182,32 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     setState(() => _processingPayment = true);
 
+    // Step 1: Create Razorpay order on backend
+    final orderRes = await ApiService.createRazorpayOrder(widget.grandTotal.toDouble());
+    
+    if (!mounted) return;
+    
+    if (orderRes['success'] != true) {
+      setState(() => _processingPayment = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(orderRes['message'] ?? 'Failed to create payment order')),
+      );
+      return;
+    }
+
+    final razorpayOrderId = orderRes['order']['id'];
+
     if (kIsWeb) {
-      _openRazorpayWeb();
+      _openRazorpayWeb(razorpayOrderId);
     } else {
-      _openRazorpayMobile();
+      _openRazorpayMobile(razorpayOrderId);
     }
   }
 
-  void _openRazorpayMobile() {
+  void _openRazorpayMobile(String razorpayOrderId) {
     var options = {
       'key': 'rzp_test_TEbkIK2Vtv3aJO',
+      'order_id': razorpayOrderId,
       'amount': widget.grandTotal * 100,
       'name': 'SKYfresh',
       'description': 'Fresh fruits and juices',
@@ -193,10 +247,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  void _openRazorpayWeb() {
+  void _openRazorpayWeb(String razorpayOrderId) {
     try {
       var options = js.JsObject.jsify({
         'key': 'rzp_test_TEbkIK2Vtv3aJO',
+        'order_id': razorpayOrderId,
         'amount': widget.grandTotal * 100,
         'name': 'SKYfresh',
         'description': 'Fresh fruits and juices',
@@ -209,8 +264,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         },
         'handler': (response) {
           print('Payment success: $response');
-          setState(() => _processingPayment = false);
-          _placeOrder();
+          _verifyAndPlaceOrder(response['razorpay_order_id'], response['razorpay_payment_id'], response['razorpay_signature']);
         },
         'modal': {
           'ondismiss': () {
@@ -273,18 +327,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final res = await ApiService.placeOrder(
       items: items,
       subtotal: widget.subtotal,
-      deliveryFee: widget.deliveryFee,
-      total: widget.grandTotal,
-      address: address,
+      deliveryCharge: widget.deliveryFee,
+      totalAmount: widget.grandTotal,
+      shippingAddress: address,
       paymentMethod: _paymentMethod,
     );
 
     setState(() => _placing = false);
+    setState(() => _processingPayment = false);
     if (!mounted) return;
 
     if (res['success'] == true) {
       final orderId = res['orderId']?.toString() ?? res['order']?['_id']?.toString() ?? '';
-      cart.clear();
+      cart.clearCart();
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => OrderSuccessScreen(orderId: orderId.toString())),
