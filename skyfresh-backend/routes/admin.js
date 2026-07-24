@@ -24,7 +24,7 @@ router.put('/orders/:id/status', requireAuth, requireAdmin, async (req, res) => 
     const updatedOrder = await Order.findByIdAndUpdate(
       req.params.id,
       { status },
-      { new: true }
+      { returnDocument: 'after' }
     ).populate('userId', 'phone name fcmToken');
     
     if (!updatedOrder) {
