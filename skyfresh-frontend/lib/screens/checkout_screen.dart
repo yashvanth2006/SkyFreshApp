@@ -273,9 +273,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final res = await ApiService.placeOrder(
       items: items,
       subtotal: widget.subtotal,
-      deliveryFee: widget.deliveryFee,
-      total: widget.grandTotal,
-      address: address,
+      deliveryCharge: widget.deliveryFee,
+      totalAmount: widget.grandTotal,
+      shippingAddress: address,
       paymentMethod: _paymentMethod,
     );
 

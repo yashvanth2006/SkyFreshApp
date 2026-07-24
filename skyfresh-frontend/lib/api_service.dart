@@ -187,9 +187,9 @@ class ApiService {
   static Future<Map<String, dynamic>> placeOrder({
     required List<Map<String, dynamic>> items,
     required num subtotal,
-    required num deliveryFee,
-    required num total,
-    required String address,
+    required num deliveryCharge,
+    required num totalAmount,
+    required String shippingAddress,
     String? paymentMethod, 
   }) async {
     try {
@@ -203,9 +203,9 @@ class ApiService {
         body: jsonEncode({
           'items': items,
           'subtotal': subtotal,
-          'deliveryFee': deliveryFee,
-          'total': total,
-          'address': address,
+          'deliveryCharge': deliveryCharge,
+          'totalAmount': totalAmount,
+          'shippingAddress': shippingAddress,
           'paymentMethod': paymentMethod ?? 'Cash on Delivery',
         }),
       );

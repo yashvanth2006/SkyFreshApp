@@ -140,4 +140,8 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
     _saveCart();
   }
+
+  void clearCart() {
+    clear();
+  }
 }
