@@ -38,4 +38,8 @@ mongoose
     console.log('Connected to MongoDB');
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
-  .catch((err) => console.error('MongoDB connection error:', err));
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+    console.log('Attempting to start server anyway...');
+    app.listen(PORT, () => console.log(`Server running on port ${PORT} (without database)`));
+  });

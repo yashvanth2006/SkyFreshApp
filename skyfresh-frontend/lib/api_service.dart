@@ -237,4 +237,42 @@ class ApiService {
       return {'success': false, 'message': 'Connection failed'};
     }
   }
+
+  static Future<Map<String, dynamic>> createRazorpayOrder(double amount) async {
+    try {
+      final token = await getToken();
+      final response = await http.post(
+        Uri.parse('$baseUrl/payments/create-order'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'amount': amount}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to create payment order'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> verifyPayment(String orderId, String paymentId, String signature) async {
+    try {
+      final token = await getToken();
+      final response = await http.post(
+        Uri.parse('$baseUrl/payments/verify'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'razorpay_order_id': orderId,
+          'razorpay_payment_id': paymentId,
+          'razorpay_signature': signature,
+        }),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Payment verification failed'};
+    }
+  }
 }
