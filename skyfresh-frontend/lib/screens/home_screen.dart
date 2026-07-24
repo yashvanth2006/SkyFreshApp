@@ -12,6 +12,7 @@ import 'package:skyfresh/screens/help_support_screen.dart';
 import 'package:skyfresh/screens/auth_screen.dart';
 import 'package:skyfresh/screens/ai_screen.dart';
 import 'package:skyfresh/screens/admin_dashboard.dart';
+import 'package:skyfresh/services/notification_service.dart';
 import 'cart_screen.dart';
 import 'notifications_screen.dart';
 
@@ -50,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadUser();
     _fetchDynamicProducts();
+    _initializeNotifications();
   }
 
   @override
@@ -83,6 +85,14 @@ class _HomeScreenState extends State<HomeScreen> {
         _userName = profile.name;
       }
     });
+  }
+
+  Future<void> _initializeNotifications() async {
+    try {
+      await NotificationService().initialize();
+    } catch (e) {
+      print('Error initializing notifications: $e');
+    }
   }
 
   Future<void> _logout() async {

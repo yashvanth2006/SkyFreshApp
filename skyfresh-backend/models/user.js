@@ -17,6 +17,10 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'admin'],
       default: 'user'
     },
+    fcmToken: {
+      type: String,
+      default: null
+    },
     otp: {
       type: String,
       default: null

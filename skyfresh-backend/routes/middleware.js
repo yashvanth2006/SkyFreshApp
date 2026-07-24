@@ -16,7 +16,7 @@ function requireAuth(req, res, next) {
 }
 
 async function requireAdmin(req, res, next) {
-  const User = require('../models/User');
+  const User = require('../models/user');
   try {
     const user = await User.findById(req.user.id);
     if (!user || user.role !== 'admin') {

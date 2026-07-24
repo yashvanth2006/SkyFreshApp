@@ -309,4 +309,21 @@ class ApiService {
       return {'success': false, 'message': 'Failed to update order status'};
     }
   }
+
+  static Future<Map<String, dynamic>> updateFcmToken(String fcmToken) async {
+    try {
+      final token = await getToken();
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/fcm-token'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'fcmToken': fcmToken}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Failed to save FCM token'};
+    }
+  }
 }

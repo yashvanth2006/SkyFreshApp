@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const User = require('../models/user');
 const Order = require('../models/Order');
 const { requireAuth } = require('./middleware');
 
@@ -170,6 +170,31 @@ router.patch('/addresses/:id/default', requireAuth, async (req, res) => {
     
   } catch (err) {
     res.json({ success: false, message: 'Failed to update default address', error: err.message });
+  }
+});
+
+// POST /api/users/fcm-token - Save FCM token for push notifications
+router.post('/fcm-token', requireAuth, async (req, res) => {
+  try {
+    const { fcmToken } = req.body;
+    
+    if (!fcmToken) {
+      return res.json({ success: false, message: 'FCM token is required' });
+    }
+    
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.json({ success: false, message: 'User not found' });
+    }
+    
+    user.fcmToken = fcmToken;
+    await user.save();
+    
+    res.json({ success: true, message: 'FCM token saved successfully' });
+    
+  } catch (err) {
+    res.json({ success: false, message: 'Failed to save FCM token', error: err.message });
   }
 });
 

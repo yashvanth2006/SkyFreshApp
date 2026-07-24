@@ -1,0 +1,11 @@
+/node_modules
+/dist
+/build
+/logs
+/tmp
+/cache
+/temp
+/backup
+/archive
+/.env
+/firebase-service-account.json
