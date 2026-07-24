@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const admin = require('firebase-admin');
+const { initializeApp, cert } = require('firebase-admin/app');
 
 const paymentRoutes = require('./routes/paymentRoutes');
 const { router: authRouter } = require('./routes/auth');
@@ -10,13 +10,28 @@ const { router: authRouter } = require('./routes/auth');
 // Initialize Firebase Admin SDK (with fallback if service account is missing)
 let firebaseAdmin = null;
 try {
-  const serviceAccount = require('./firebase-service-account.json');
-  firebaseAdmin = admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-  console.log('Firebase Admin SDK initialized');
+  const fs = require('fs');
+  const path = require('path');
+  const serviceAccountPath = path.join(__dirname, 'firebase-service-account.json');
+  
+  if (fs.existsSync(serviceAccountPath)) {
+    const serviceAccountFile = fs.readFileSync(serviceAccountPath, 'utf8');
+    const serviceAccount = JSON.parse(serviceAccountFile);
+    firebaseAdmin = initializeApp({
+      credential: cert(serviceAccount),
+    });
+    console.log('Firebase Admin SDK initialized successfully');
+  } else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    firebaseAdmin = initializeApp({
+      credential: cert(serviceAccount),
+    });
+    console.log('Firebase Admin SDK initialized via environment variable');
+  } else {
+    console.log('Firebase Admin SDK not initialized (firebase-service-account.json not found and FIREBASE_SERVICE_ACCOUNT not set)');
+  }
 } catch (err) {
-  console.log('Firebase Admin SDK not initialized (firebase-service-account.json not found)');
+  console.error('Firebase Admin SDK initialization error:', err.message);
   console.log('FCM notifications will be disabled');
 }
 

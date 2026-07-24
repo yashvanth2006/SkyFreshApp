@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shimmer/shimmer.dart';
 import 'dart:async';
 import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/cart_provider.dart';
@@ -913,34 +914,21 @@ class _ProductCard extends StatelessWidget {
   }
 }
 
-class _ProductSkeleton extends StatefulWidget {
+class _ProductSkeleton extends StatelessWidget {
   const _ProductSkeleton();
-  @override
-  State<_ProductSkeleton> createState() => _ProductSkeletonState();
-}
-
-class _ProductSkeletonState extends State<_ProductSkeleton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 1100))..repeat(reverse: true);
-
-  @override
-  void dispose() { _c.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _c,
-      builder: (_, __) {
-        final op = 0.4 + (_c.value * 0.3);
-        return Container(
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceLight.withOpacity(op),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppTheme.border.withOpacity(op)),
-          ),
-        );
-      },
+    return Shimmer.fromColors(
+      baseColor: AppTheme.surfaceLight,
+      highlightColor: Colors.white.withOpacity(0.5),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceLight,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppTheme.border),
+        ),
+      ),
     );
   }
 }

@@ -3,6 +3,7 @@ const router = express.Router();
 const Order = require('../models/Order');
 const User = require('../models/user');
 const { requireAuth, requireAdmin } = require('./middleware');
+const { getMessaging } = require('firebase-admin/messaging');
 
 // GET /api/admin/orders - Fetch all orders (admin only)
 router.get('/orders', requireAuth, requireAdmin, async (req, res) => {
@@ -24,7 +25,7 @@ router.put('/orders/:id/status', requireAuth, requireAdmin, async (req, res) => 
       req.params.id,
       { status },
       { new: true }
-    ).populate('userId', 'phone name');
+    ).populate('userId', 'phone name fcmToken');
     
     if (!updatedOrder) {
       return res.status(404).json({ success: false, message: 'Order not found' });
@@ -41,7 +42,7 @@ router.put('/orders/:id/status', requireAuth, requireAdmin, async (req, res) => 
           token: updatedOrder.userId.fcmToken,
         };
 
-        await global.firebaseAdmin.messaging().send(message);
+        await getMessaging(global.firebaseAdmin).send(message);
         console.log('FCM notification sent to user', updatedOrder.userId.phone);
       } catch (fcmError) {
         console.error('Failed to send FCM notification:', fcmError.message);
