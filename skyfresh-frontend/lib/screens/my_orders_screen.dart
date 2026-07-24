@@ -168,14 +168,14 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                                   const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
-                                      order['address']?.toString() ?? '',
+                                      order['shippingAddress']?.toString() ?? '',
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
                                     ),
                                   ),
                                   Text(
-                                    '₹${order['total']}',
+                                    '₹${order['totalAmount']}',
                                     style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.primaryDark),
                                   ),
                                 ],

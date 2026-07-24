@@ -36,6 +36,16 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/orders/my - Fetch current user's orders (protected)
+router.get('/my', requireAuth, async (req, res) => {
+  try {
+    const orders = await Order.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    res.json({ success: true, orders });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching orders', error: error.message });
+  }
+});
+
 // GET /api/orders - Fetch all orders (For Admin Panel)
 router.get('/', async (req, res) => {
   try {
