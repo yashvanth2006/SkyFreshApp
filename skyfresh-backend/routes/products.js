@@ -61,6 +61,12 @@ router.post('/', async (req, res) => {
     if (!productData.color) {
       productData.color = '#DCFCE7'; // Default color
     }
+    if (productData.stock === undefined || productData.stock === '') {
+      productData.stock = 10;
+    }
+    if (!productData.category) {
+      productData.category = 'Fruits';
+    }
     
     // If no image is provided, fetch one from Pexels
     if (!productData.image || productData.image.trim() === '') {
@@ -75,7 +81,7 @@ router.post('/', async (req, res) => {
     
     const product = new Product(productData);
     const savedProduct = await product.save();
-    res.status(201).json({ success: true, product: savedProduct });
+    res.status(201).json(savedProduct);
   } catch (err) {
     console.error('Error saving product:', err);
     res.status(400).json({ success: false, message: err.message });
