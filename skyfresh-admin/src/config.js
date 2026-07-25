@@ -1,6 +1,6 @@
 const config = {
-  // This tells the frontend to send data to your backend port (5000)
-  API_BASE_URL: 'http://localhost:5000/api' 
+  // Points to the production backend
+  API_BASE_URL: 'https://skyfreshapp.onrender.com/api' 
 };
 
 export default config;

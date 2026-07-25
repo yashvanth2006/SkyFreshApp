@@ -8,7 +8,7 @@ import 'package:skyfresh/models/user_profile.dart';
 import 'package:skyfresh/screens/order_success_screen.dart';
 
 import 'package:razorpay_flutter/razorpay_flutter.dart';
-import 'dart:js' as js;
+import 'razorpay_stub.dart' if (dart.library.js) 'razorpay_web.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final int subtotal;
@@ -34,7 +34,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _countryCtrl = TextEditingController(text: 'India');
 
   late Razorpay _razorpay;
-  dynamic _razorpayWebInstance;
   bool _placing = false;
   bool _processingPayment = false;
   bool _addressesLoading = true;
@@ -116,32 +115,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _verifyAndPlaceOrder(response.orderId!, response.paymentId!, response.signature!);
   }
 
-  void _handlePaymentSuccessWeb(dynamic response) {
-    final orderId = response['razorpay_order_id']?.toString();
-    final paymentId = response['razorpay_payment_id']?.toString();
-    final signature = response['razorpay_signature']?.toString();
-    
-    if (orderId == null || paymentId == null || signature == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Payment verification failed: Missing payment details')),
-      );
-      return;
-    }
-    
-    _verifyAndPlaceOrder(orderId, paymentId, signature);
-  }
-
   void _handlePaymentError(PaymentFailureResponse response) {
     setState(() => _processingPayment = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Payment failed: ${response.code} - ${response.message}')),
-    );
-  }
-
-  void _handlePaymentErrorWeb(String error) {
-    setState(() => _processingPayment = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Payment failed: $error')),
     );
   }
 
@@ -248,60 +225,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _openRazorpayWeb(String razorpayOrderId) {
-    try {
-      var options = js.JsObject.jsify({
-        'key': 'rzp_test_TEbkIK2Vtv3aJO',
-        'order_id': razorpayOrderId,
-        'amount': widget.grandTotal * 100,
-        'name': 'SKYfresh',
-        'description': 'Fresh fruits and juices',
-        'prefill': {
-          'contact': _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text : '',
-          'email': '',
-        },
-        'theme': {
-          'color': '#4CAF50'
-        },
-        'handler': (response) {
-          print('Payment success: $response');
-          _verifyAndPlaceOrder(response['razorpay_order_id'], response['razorpay_payment_id'], response['razorpay_signature']);
-        },
-        'modal': {
-          'ondismiss': () {
-            print('Payment modal dismissed');
-            setState(() => _processingPayment = false);
-          }
-        }
-      });
-
-      // Call Razorpay via JS
-      var razorpay = js.context['Razorpay'];
-      if (razorpay != null) {
-        _razorpayWebInstance = js.JsObject(razorpay, [options]);
-        _razorpayWebInstance.callMethod('open');
-        
-        Future.delayed(const Duration(seconds: 30), () {
-          if (mounted && _processingPayment) {
-            setState(() => _processingPayment = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Payment timeout. Please try again.')),
-            );
-          }
-        });
-      } else {
-        print('Razorpay JS not loaded');
+    openRazorpayWebImpl(
+      razorpayOrderId: razorpayOrderId,
+      amount: widget.grandTotal * 100,
+      contact: _phoneCtrl.text.isNotEmpty ? _phoneCtrl.text : '',
+      onSuccess: (orderId, paymentId, signature) {
+        print('Payment success: orderId=$orderId');
+        _verifyAndPlaceOrder(orderId, paymentId, signature);
+      },
+      onDismiss: () {
+        print('Payment modal dismissed');
+        setState(() => _processingPayment = false);
+      },
+      onError: (error) {
+        print('Error opening Razorpay Web: $error');
         setState(() => _processingPayment = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Razorpay not available. Please try again.')),
+          SnackBar(content: Text('Error opening Razorpay: $error')),
+        );
+      },
+    );
+    
+    Future.delayed(const Duration(seconds: 30), () {
+      if (mounted && _processingPayment) {
+        setState(() => _processingPayment = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Payment timeout. Please try again.')),
         );
       }
-    } catch (e) {
-      print('Error opening Razorpay Web: $e');
-      setState(() => _processingPayment = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error opening Razorpay: $e')),
-      );
-    }
+    });
   }
 
   Future<void> _placeOrder() async {
