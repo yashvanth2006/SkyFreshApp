@@ -10,26 +10,20 @@ const { router: authRouter } = require('./routes/auth');
 // Initialize Firebase Admin SDK (with fallback if service account is missing)
 let firebaseAdmin = null;
 try {
-  const fs = require('fs');
-  const path = require('path');
-  const serviceAccountPath = path.join(__dirname, 'firebase-service-account.json');
-  
-  if (fs.existsSync(serviceAccountPath)) {
-    const serviceAccountFile = fs.readFileSync(serviceAccountPath, 'utf8');
-    const serviceAccount = JSON.parse(serviceAccountFile);
-    firebaseAdmin = initializeApp({
-      credential: cert(serviceAccount),
-    });
-    console.log('Firebase Admin SDK initialized successfully');
-  } else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    firebaseAdmin = initializeApp({
-      credential: cert(serviceAccount),
-    });
+  let serviceAccount;
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    // Parse the JSON string from Render environment variables
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
     console.log('Firebase Admin SDK initialized via environment variable');
   } else {
-    console.log('Firebase Admin SDK not initialized (firebase-service-account.json not found and FIREBASE_SERVICE_ACCOUNT not set)');
+    // Fallback for local development
+    serviceAccount = require('./firebase-service-account.json'); // Ensure this is a relative path now!
+    console.log('Firebase Admin SDK initialized via local file');
   }
+
+  firebaseAdmin = initializeApp({
+    credential: cert(serviceAccount)
+  });
 } catch (err) {
   console.error('Firebase Admin SDK initialization error:', err.message);
   console.log('FCM notifications will be disabled');
