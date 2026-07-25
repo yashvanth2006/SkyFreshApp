@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:skyfresh/theme.dart';
@@ -7,7 +8,27 @@ import 'package:skyfresh/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    if (kIsWeb) {
+      print("Firebase web options not configured yet. App running without FCM web options.");
+      try {
+        await Firebase.initializeApp(
+          options: const FirebaseOptions(
+            apiKey: 'dummy-key',
+            appId: 'dummy-id',
+            messagingSenderId: 'dummy-sender',
+            projectId: 'dummy-project',
+          ),
+        );
+      } catch (e2) {
+        print("Fallback Firebase initialization failed: $e2");
+      }
+    } else {
+      print("Firebase initialization error: $e");
+    }
+  }
   runApp(const SKYfreshApp());
 }
 
@@ -34,6 +55,16 @@ class SKYfreshApp extends StatelessWidget {
             iconTheme: IconThemeData(color: AppTheme.textMain),
             titleTextStyle: TextStyle(color: AppTheme.textMain, fontSize: 18, fontWeight: FontWeight.w700),
           ),
+          pageTransitionsTheme: const PageTransitionsTheme(
+            builders: <TargetPlatform, PageTransitionsBuilder>{
+              TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+            },
+          ),
+
         ),
         home: const SplashScreen(),
       ),

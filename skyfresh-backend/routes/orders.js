@@ -63,7 +63,7 @@ router.patch('/:id/status', async (req, res) => {
     const updatedOrder = await Order.findByIdAndUpdate(
       req.params.id,
       { status },
-      { new: true }
+      { returnDocument: 'after' }
     );
     res.json(updatedOrder);
   } catch (error) {
