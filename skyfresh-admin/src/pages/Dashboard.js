@@ -1,6 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import config from '../config';
 
 const Dashboard = () => {
+  const [stats, setStats] = useState({
+    totalOrders: 0,
+    totalUsers: 0,
+    activeProducts: 0,
+    totalSales: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch(`${config.API_BASE_URL}/admin/stats`);
+      const data = await res.json();
+      if (data) {
+        setStats({
+          totalOrders: data.totalOrders || 0,
+          totalUsers: data.totalUsers || 0,
+          activeProducts: data.activeProducts || 0,
+          totalSales: data.totalSales || 0
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div>Loading dashboard...</div>;
+  }
+
   return (
     <div>
       <h2 style={{ color: '#1e293b' }}>Dashboard Overview</h2>
@@ -8,22 +44,22 @@ const Dashboard = () => {
       <div style={styles.grid}>
         <div style={styles.card}>
           <div style={styles.cardTitle}>Total Orders</div>
-          <div style={styles.cardValue}>124</div>
+          <div style={styles.cardValue}>{stats.totalOrders}</div>
         </div>
         
         <div style={styles.card}>
           <div style={styles.cardTitle}>Active Products</div>
-          <div style={styles.cardValue}>48</div>
+          <div style={styles.cardValue}>{stats.activeProducts}</div>
         </div>
         
         <div style={styles.card}>
           <div style={styles.cardTitle}>Total Users</div>
-          <div style={styles.cardValue}>856</div>
+          <div style={styles.cardValue}>{stats.totalUsers}</div>
         </div>
 
         <div style={styles.card}>
           <div style={styles.cardTitle}>Revenue</div>
-          <div style={styles.cardValue}>$12,450</div>
+          <div style={styles.cardValue}>₹{stats.totalSales}</div>
         </div>
       </div>
 

@@ -49,7 +49,7 @@ router.get('/my', requireAuth, async (req, res) => {
 // GET /api/orders - Fetch all orders (For Admin Panel)
 router.get('/', async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const orders = await Order.find().populate('userId', 'phone name').sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching orders', error: error.message });
