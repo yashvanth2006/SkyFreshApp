@@ -5,9 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skyfresh/models/user_profile.dart';
 
 class ApiService {
-  static const String baseUrl = kIsWeb 
-    ? 'http://localhost:5000/api' 
-    : 'http://10.191.134.53:5000/api';
+  static const String baseUrl = 'https://skyfreshapp.onrender.com/api';
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
