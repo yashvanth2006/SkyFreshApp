@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import config from './config';
+import config from '../config';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -32,17 +32,19 @@ const Users = () => {
             <tr>
               <th style={styles.th}>User ID</th>
               <th style={styles.th}>Name</th>
-              <th style={styles.th}>Email</th>
-              <th style={styles.th}>Role</th>
+              <th style={styles.th}>Phone</th>
+              <th style={styles.th}>Registered</th>
+              <th style={styles.th}>Status</th>
             </tr>
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.id}>
-                <td style={styles.td}>#{user.id}</td>
-                <td style={styles.td}>{user.name}</td>
-                <td style={styles.td}>{user.email}</td>
-                <td style={styles.td}>{user.role || 'Customer'}</td>
+              <tr key={user.id || user._id}>
+                <td style={styles.td}>#{(user.id || user._id || '').toString().slice(-6).toUpperCase()}</td>
+                <td style={styles.td}>{user.name || 'N/A'}</td>
+                <td style={styles.td}>{user.phone || 'N/A'}</td>
+                <td style={styles.td}>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</td>
+                <td style={styles.td}>{user.isVerified ? 'Verified' : 'Pending'}</td>
               </tr>
             ))}
           </tbody>

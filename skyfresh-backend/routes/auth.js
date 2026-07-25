@@ -198,4 +198,14 @@ router.post('/fcm-token', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/users - Fetch all users (For Admin Panel)
+router.get('/', async (req, res) => {
+  try {
+    const users = await User.find().sort({ createdAt: -1 });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching users', error: err.message });
+  }
+});
+
 module.exports = { router, requireAuth };

@@ -2,8 +2,29 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const User = require('../models/user');
+const Product = require('../models/Product');
 const { requireAuth, requireAdmin } = require('./middleware');
 const { getMessaging } = require('firebase-admin/messaging');
+
+// GET /api/admin/stats - Summary numbers
+router.get('/stats', async (req, res) => {
+  try {
+    const totalOrders = await Order.countDocuments();
+    const totalUsers = await User.countDocuments();
+    const activeProducts = await Product.countDocuments();
+    const orders = await Order.find({ status: { $nin: ['Cancelled', 'Failed'] } });
+    const totalSales = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+    
+    res.json({
+      totalOrders,
+      totalUsers,
+      activeProducts,
+      totalSales
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching stats', error: error.message });
+  }
+});
 
 // GET /api/admin/orders - Fetch all orders (admin only)
 router.get('/orders', requireAuth, requireAdmin, async (req, res) => {

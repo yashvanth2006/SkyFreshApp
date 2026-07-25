@@ -6,7 +6,7 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Orders from './pages/Orders';
-import Users from './Users'; // Root src folder
+import Users from './pages/Users';
 
 function App() {
   return (

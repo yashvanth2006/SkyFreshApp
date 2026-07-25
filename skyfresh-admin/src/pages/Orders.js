@@ -52,7 +52,9 @@ const Orders = () => {
             <tr>
               <th style={styles.th}>Order ID</th>
               <th style={styles.th}>Customer</th>
+              <th style={styles.th}>Items</th>
               <th style={styles.th}>Total</th>
+              <th style={styles.th}>Payment</th>
               <th style={styles.th}>Status</th>
               <th style={styles.th}>Action</th>
             </tr>
@@ -60,9 +62,18 @@ const Orders = () => {
           <tbody>
             {orders.map((order) => (
               <tr key={order.id || order._id}>
-                <td style={styles.td}>#{(order.id || order._id).slice(-6)}</td>
-                <td style={styles.td}>{order.customerName || order.user || 'Guest User'}</td>
-                <td style={styles.td}>${order.totalAmount || order.total || 0}</td>
+                <td style={styles.td}>#{(order.id || order._id || '').toString().slice(-6).toUpperCase()}</td>
+                <td style={styles.td}>
+                   <div>{order.customerName || order.userId?.name || 'Guest User'}</div>
+                   <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{order.userId?.phone || ''}</div>
+                </td>
+                <td style={styles.td}>
+                   <div style={{ fontSize: '0.85rem' }}>
+                     {order.items?.map(i => `${i.name} (x${i.quantity})`).join(', ')}
+                   </div>
+                </td>
+                <td style={styles.td}>₹{order.totalAmount || order.total || 0}</td>
+                <td style={styles.td}>{order.paymentMethod || 'COD'}</td>
                 <td style={styles.td}>
                   <span style={getBadgeStyle(order.status)}>{order.status}</span>
                 </td>
