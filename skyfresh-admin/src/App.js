@@ -7,28 +7,51 @@ import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Orders from './pages/Orders';
 import Users from './pages/Users';
+import Login from './pages/Login';
+
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('admin_token');
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
+const AdminLayout = ({ children }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  return (
+    <div className="app-container">
+      <Sidebar isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+      <main className="main-content">
+        <div className="mobile-header">
+          <button className="hamburger-btn" onClick={() => setIsMobileMenuOpen(true)}>☰</button>
+          <h2 className="mobile-header-title">SKYfresh Admin</h2>
+        </div>
+        {children}
+      </main>
+    </div>
+  );
+};
 
 function App() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   return (
     <Router>
-      <div className="app-container">
-        <Sidebar isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
-        <main className="main-content">
-          <div className="mobile-header">
-            <button className="hamburger-btn" onClick={() => setIsMobileMenuOpen(true)}>☰</button>
-            <h2 className="mobile-header-title">SKYfresh Admin</h2>
-          </div>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </div>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/*" element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/orders" element={<Orders />} />
+                <Route path="/users" element={<Users />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </AdminLayout>
+          </ProtectedRoute>
+        } />
+      </Routes>
     </Router>
   );
 }
