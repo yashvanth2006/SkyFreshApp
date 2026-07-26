@@ -31,10 +31,10 @@ try {
 
 const app = express();
 
-// Allow requests from React frontend ports (3000, 3001, etc.)
+// Allow requests from React frontend ports and production admin panel
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001'],
+    origin: ['http://localhost:3000', 'https://skyfresh-admin.onrender.com'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
