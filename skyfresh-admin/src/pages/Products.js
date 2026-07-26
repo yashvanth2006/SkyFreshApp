@@ -17,7 +17,7 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch(`${config.API_BASE_URL}/products`);
+      const res = await fetch(`${config.API_BASE_URL}/products?_t=${Date.now()}`);
       const data = await res.json();
       console.log('Fetched data:', data);
       
@@ -60,7 +60,7 @@ const Products = () => {
       });
 
       if (res.ok) {
-        fetchProducts();
+        await fetchProducts();
         resetForm();
         alert(isEditing ? 'Product updated successfully!' : 'Product saved successfully!');
       } else {
