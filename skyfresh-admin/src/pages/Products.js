@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import config from '../config';
+import { API_URL } from '../config';
 
 const getAdminHeaders = () => ({
   'Content-Type': 'application/json',
@@ -17,7 +17,7 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch(`${config.API_BASE_URL}/products?_t=${Date.now()}`);
+      const res = await fetch(`${API_URL}/products?_t=${Date.now()}`);
       const data = await res.json();
       console.log('Fetched data:', data);
       
@@ -48,8 +48,8 @@ const Products = () => {
     }
 
     const url = isEditing
-      ? `${config.API_BASE_URL}/products/${formData.id || formData._id}`
-      : `${config.API_BASE_URL}/products`;
+      ? `${API_URL}/products/${formData.id || formData._id}`
+      : `${API_URL}/products`;
     const method = isEditing ? 'PUT' : 'POST';
 
     try {
@@ -83,7 +83,7 @@ const Products = () => {
   const handleDeleteProduct = async (id) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
     try {
-      const res = await fetch(`${config.API_BASE_URL}/products/${id}`, {
+      const res = await fetch(`${API_URL}/products/${id}`, {
         method: 'DELETE',
         headers: getAdminHeaders()
       });

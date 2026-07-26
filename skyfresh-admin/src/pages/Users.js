@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import config from '../config';
+import { API_URL } from '../config';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -11,7 +11,7 @@ const Users = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${config.API_BASE_URL}/users`);
+      const res = await fetch(`${API_URL}/users`);
       const data = await res.json();
       setUsers(data);
     } catch (err) {
