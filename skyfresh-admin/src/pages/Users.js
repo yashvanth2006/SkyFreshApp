@@ -27,7 +27,8 @@ const Users = () => {
       {loading ? (
         <p>Loading user list...</p>
       ) : (
-        <table style={styles.table}>
+        <div className="table-responsive-wrapper">
+          <table style={styles.table}>
           <thead>
             <tr>
               <th style={styles.th}>User ID</th>
@@ -48,7 +49,8 @@ const Users = () => {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
     </div>
   );

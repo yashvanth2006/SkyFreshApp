@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'admin'],
       default: 'user'
     },
+    firebaseUid: {
+      type: String,
+      default: null,
+      sparse: true,
+    },
     fcmToken: {
       type: String,
       default: null

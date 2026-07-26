@@ -10,7 +10,7 @@ import 'package:skyfresh/models/user_profile.dart';
 import 'package:skyfresh/screens/my_orders_screen.dart';
 import 'package:skyfresh/screens/my_addresses_screen.dart';
 import 'package:skyfresh/screens/help_support_screen.dart';
-import 'package:skyfresh/screens/auth_screen.dart';
+import 'package:skyfresh/screens/login_screen.dart';
 import 'package:skyfresh/screens/ai_screen.dart';
 import 'package:skyfresh/screens/admin_dashboard.dart';
 import 'package:skyfresh/services/notification_service.dart';
@@ -101,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const AuthScreen()),
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
       (route) => false,
     );
   }

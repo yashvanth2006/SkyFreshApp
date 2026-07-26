@@ -41,7 +41,7 @@ const Dashboard = () => {
     <div>
       <h2 style={{ color: '#1e293b' }}>Dashboard Overview</h2>
       
-      <div style={styles.grid}>
+      <div className="dashboard-grid">
         <div style={styles.card}>
           <div style={styles.cardTitle}>Total Orders</div>
           <div style={styles.cardValue}>{stats.totalOrders}</div>
@@ -72,12 +72,6 @@ const Dashboard = () => {
 };
 
 const styles = {
-  grid: { 
-    display: 'grid', 
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-    gap: '20px', 
-    marginBottom: '30px' 
-  },
   card: { 
     backgroundColor: '#fff', 
     padding: '24px', 

@@ -47,7 +47,8 @@ const Orders = () => {
       {loading ? (
         <p>Loading orders...</p>
       ) : (
-        <table style={styles.table}>
+        <div className="table-responsive-wrapper">
+          <table style={styles.table}>
           <thead>
             <tr>
               <th style={styles.th}>Order ID</th>
@@ -93,7 +94,8 @@ const Orders = () => {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
     </div>
   );
