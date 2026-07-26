@@ -90,6 +90,76 @@ router.post('/verify-otp', async (req, res) => {
   }
 });
 
+// POST /api/auth/firebase-login - Verify Firebase ID token and return app JWT
+router.post('/firebase-login', async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.json({ success: false, message: 'Firebase ID token is required' });
+    }
+
+    if (!global.firebaseAdmin) {
+      return res.json({ success: false, message: 'Firebase Admin SDK not initialised on server' });
+    }
+
+    // 1. Verify the ID token with Firebase Admin
+    const { getAuth } = require('firebase-admin/auth');
+    let decodedToken;
+    try {
+      decodedToken = await getAuth().verifyIdToken(idToken);
+    } catch (firebaseErr) {
+      console.error('Firebase token verification failed:', firebaseErr.message);
+      return res.json({ success: false, message: 'Invalid or expired Firebase token', error: firebaseErr.message });
+    }
+
+    const firebaseUid  = decodedToken.uid;
+    const phoneE164    = decodedToken.phone_number; // e.g. "+919876543210"
+
+    if (!phoneE164) {
+      return res.json({ success: false, message: 'No phone number in Firebase token' });
+    }
+
+    // 2. Find existing user — try E.164 exact match first, then last-10-digit fuzzy match
+    //    (for users registered before E.164 migration)
+    const last10 = phoneE164.replace(/^\+\d{1,3}/, '').slice(-10);
+
+    let user = await User.findOne({ phone: phoneE164 })
+      || await User.findOne({ phone: { $regex: last10 + '$' } });
+
+    // 3. Create a new user if none found
+    if (!user) {
+      user = new User({
+        phone: phoneE164,
+        firebaseUid,
+        isVerified: true,
+      });
+    } else {
+      // Migrate phone to E.164 and store firebaseUid if missing
+      if (user.phone !== phoneE164) user.phone = phoneE164;
+      if (!user.firebaseUid) user.firebaseUid = firebaseUid;
+      user.isVerified = true;
+    }
+
+    await user.save();
+
+    // 4. Issue app JWT (same shape as /verify-otp)
+    const token = jwt.sign(
+      { id: user._id, phone: user.phone },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    console.log(`🔥 Firebase login: ${phoneE164} (uid: ${firebaseUid})`);
+    res.json({ success: true, message: 'Logged in successfully', token, user: formatUser(user) });
+
+  } catch (err) {
+    console.error('Firebase login error:', err);
+    res.json({ success: false, message: 'Firebase login failed', error: err.message });
+  }
+});
+
+
 router.get('/me', requireAuth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);

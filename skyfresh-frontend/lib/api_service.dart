@@ -48,6 +48,30 @@ class ApiService {
     }
   }
 
+  /// Exchange a Firebase ID token for the app's JWT session token.
+  /// Called after [FirebaseAuth.instance.signInWithCredential] succeeds.
+  static Future<Map<String, dynamic>> firebaseLogin(String? idToken) async {
+    if (idToken == null) {
+      return {'success': false, 'message': 'No Firebase ID token available'};
+    }
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/firebase-login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'idToken': idToken}),
+      );
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['token'] != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_token', data['token']);
+      }
+      return data;
+    } catch (e) {
+      return {'success': false, 'message': 'Firebase login connection failed'};
+    }
+  }
+
+
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user_token');
