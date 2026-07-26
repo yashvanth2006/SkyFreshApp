@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
+const Notification = require('../models/Notification');
 const { requireAuth } = require('./middleware');
 
 // POST /api/orders - Create a new order (protected)
@@ -21,6 +22,16 @@ router.post('/', requireAuth, async (req, res) => {
     });
 
     const savedOrder = await newOrder.save();
+
+    // Create order notification
+    await new Notification({
+      userId: req.user.id,
+      title: 'Order Confirmed 📦',
+      body: `Your order #${savedOrder._id.toString().slice(-6).toUpperCase()} has been confirmed and is being prepared.`,
+      icon: '📦',
+      color: '#DBEAFE',
+      unread: true
+    }).save();
 
     return res.status(201).json({
       success: true,

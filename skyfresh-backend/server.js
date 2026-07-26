@@ -51,6 +51,7 @@ app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 // Make firebase admin available globally for routes
 global.firebaseAdmin = firebaseAdmin;

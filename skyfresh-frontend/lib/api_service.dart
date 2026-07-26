@@ -324,4 +324,64 @@ class ApiService {
       return {'success': false, 'message': 'Failed to save FCM token'};
     }
   }
+
+  static Future<List<Map<String, dynamic>>> getNotifications() async {
+    try {
+      final token = await getToken();
+      final response = await http.get(
+        Uri.parse('$baseUrl/notifications'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['notifications'] != null) {
+        return List<Map<String, dynamic>>.from(data['notifications']);
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching notifications: $e');
+      return [];
+    }
+  }
+
+  static Future<bool> markNotificationRead(String id) async {
+    try {
+      final token = await getToken();
+      final response = await http.patch(
+        Uri.parse('$baseUrl/notifications/$id/read'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      final data = jsonDecode(response.body);
+      return data['success'] == true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static Future<bool> markAllNotificationsRead() async {
+    try {
+      final token = await getToken();
+      final response = await http.patch(
+        Uri.parse('$baseUrl/notifications/read-all'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      final data = jsonDecode(response.body);
+      return data['success'] == true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static Future<bool> deleteNotification(String id) async {
+    try {
+      final token = await getToken();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/notifications/$id'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      final data = jsonDecode(response.body);
+      return data['success'] == true;
+    } catch (e) {
+      return false;
+    }
+  }
 }

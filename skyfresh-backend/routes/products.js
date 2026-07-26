@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
+const Notification = require('../models/Notification');
 const axios = require('axios');
 
 // Helper function to fetch image from Pexels
@@ -93,6 +94,11 @@ router.put('/:id', async (req, res) => {
   try {
     const productData = req.body;
     
+    const oldProduct = await Product.findById(req.params.id);
+    if (!oldProduct) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+    
     // If no image is provided, fetch one from Pexels
     if (!productData.image || productData.image.trim() === '') {
       const pexelsImage = await fetchPexelsImage(productData.name);
@@ -112,6 +118,18 @@ router.put('/:id', async (req, res) => {
     
     if (!updatedProduct) {
       return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+    
+    // Check if stock dropped below 10
+    if (oldProduct.stock >= 10 && updatedProduct.stock < 10) {
+      await new Notification({
+        userId: null, // Global notification
+        title: 'Low Stock Alert ⚠️',
+        body: `Hurry! ${updatedProduct.name} is running low on stock. Only ${updatedProduct.stock} left!`,
+        icon: '⚠️',
+        color: '#FEE2E2',
+        unread: true
+      }).save();
     }
     
     res.json({ success: true, product: updatedProduct, message: 'Product successfully updated.' });

@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/flutter.dart';
 import 'package:skyfresh/theme.dart';
+import 'package:skyfresh/api_service.dart';
 
 class _Brand {
   static const Color dark = AppTheme.textMain;
@@ -22,61 +23,81 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  final List<Map<String, dynamic>> _notifications = [
-    {
-      'title': 'Order Delivered! 🎉',
-      'body': 'Your order #001 has been delivered. Enjoy your fresh fruits!',
-      'time': '2 mins ago',
-      'icon': '✅',
-      'color': 0xFFDCFCE7,
-      'unread': true,
-    },
-    {
-      'title': 'Order Confirmed 📦',
-      'body': 'Your order #002 has been confirmed and is being prepared.',
-      'time': '1 hour ago',
-      'icon': '📦',
-      'color': 0xFFDBEAFE,
-      'unread': true,
-    },
-    {
-      'title': 'Special Offer! 🥭',
-      'body': 'Get 20% off on all mango products today only!',
-      'time': '3 hours ago',
-      'icon': '🎁',
-      'color': 0xFFFFF3CD,
-      'unread': true,
-    },
-    {
-      'title': 'Out for Delivery 🛵',
-      'body': 'Your order is out for delivery. Expected in 30 minutes.',
-      'time': 'Yesterday',
-      'icon': '🛵',
-      'color': 0xFFFFEDD5,
-      'unread': false,
-    },
-    {
-      'title': 'New Arrivals 🍍',
-      'body': 'Fresh pineapples and kiwis are now available on SKYfresh!',
-      'time': '2 days ago',
-      'icon': '🌿',
-      'color': 0xFFEDE9FE,
-      'unread': false,
-    },
-  ];
+  List<Map<String, dynamic>> _notifications = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNotifications();
+  }
+
+  Future<void> _fetchNotifications() async {
+    setState(() => _loading = true);
+    final notifications = await ApiService.getNotifications();
+    
+    if (!mounted) return;
+    setState(() {
+      _notifications = notifications.map((n) {
+        return {
+          '_id': n['_id'],
+          'title': n['title'] ?? 'Notification',
+          'body': n['body'] ?? '',
+          'time': _formatTime(n['createdAt']),
+          'icon': n['icon'] ?? '🔔',
+          'color': _hexToInt(n['color'] ?? '#DCFCE7'),
+          'unread': n['unread'] ?? false,
+        };
+      }).toList();
+      _loading = false;
+    });
+  }
+
+  String _formatTime(String? dateStr) {
+    if (dateStr == null) return 'Just now';
+    try {
+      final date = DateTime.parse(dateStr).toLocal();
+      final diff = DateTime.now().difference(date);
+      if (diff.inMinutes < 2) return 'Just now';
+      if (diff.inMinutes < 60) return '${diff.inMinutes} mins ago';
+      if (diff.inHours < 24) return '${diff.inHours} hours ago';
+      if (diff.inDays == 1) return 'Yesterday';
+      return '${diff.inDays} days ago';
+    } catch (e) {
+      return 'Just now';
+    }
+  }
+
+  int _hexToInt(String hex) {
+    hex = hex.replaceAll('#', '');
+    if (hex.length == 6) hex = 'FF$hex';
+    return int.parse(hex, radix: 16);
+  }
 
   int get _unreadCount => _notifications.where((n) => n['unread'] == true).length;
 
-  void _markAllRead() {
+  Future<void> _markAllRead() async {
     setState(() {
       for (var n in _notifications) {
         n['unread'] = false;
       }
     });
+    await ApiService.markAllNotificationsRead();
   }
 
-  void _dismiss(int index) {
+  Future<void> _markRead(int index) async {
+    if (_notifications[index]['unread'] == true) {
+      setState(() => _notifications[index]['unread'] = false);
+      await ApiService.markNotificationRead(_notifications[index]['_id']);
+    }
+  }
+
+  Future<void> _dismiss(int index) async {
+    final id = _notifications[index]['_id'];
     setState(() => _notifications.removeAt(index));
+    if (id != null) {
+      await ApiService.deleteNotification(id);
+    }
   }
 
   @override
@@ -130,20 +151,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
             ),
             Expanded(
-              child: _notifications.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('🔕', style: TextStyle(fontSize: 56)),
-                        const SizedBox(height: 14),
-                        const Text('No notifications yet',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
-                              color: _Brand.dark)),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
+              child: _loading 
+                ? const Center(child: CircularProgressIndicator())
+                : _notifications.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('🔕', style: TextStyle(fontSize: 56)),
+                          const SizedBox(height: 14),
+                          const Text('No notifications yet',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
+                                color: _Brand.dark)),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: _notifications.length,
                     itemBuilder: (_, i) {
@@ -162,7 +185,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
                         ),
                         child: GestureDetector(
-                          onTap: () => setState(() => n['unread'] = false),
+                          onTap: () => _markRead(i),
                           child: Container(
                             margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
