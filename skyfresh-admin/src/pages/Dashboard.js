@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import config from '../config';
+import { API_URL } from '../config';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -16,7 +16,7 @@ const Dashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch(`${config.API_BASE_URL}/admin/stats`);
+      const res = await fetch(`${API_URL}/admin/stats`);
       const data = await res.json();
       if (data) {
         setStats({

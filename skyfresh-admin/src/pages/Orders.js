@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import config from '../config'; // Updated to '../config'
+import { API_URL } from '../config'; // Updated to '../config'
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -11,7 +11,7 @@ const Orders = () => {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch(`${config.API_BASE_URL}/orders`);
+      const res = await fetch(`${API_URL}/orders`);
       const data = await res.json();
       setOrders(data);
     } catch (err) {
@@ -23,7 +23,7 @@ const Orders = () => {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      const res = await fetch(`${config.API_BASE_URL}/orders/${orderId}/status`, {
+      const res = await fetch(`${API_URL}/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
