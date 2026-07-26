@@ -107,7 +107,7 @@ const Products = () => {
       {/* Product Form */}
       <form onSubmit={handleSubmit} style={styles.form}>
         <h3>{isEditing ? 'Edit Product' : 'Add New Product'}</h3>
-        <div style={styles.formGroup}>
+        <div className="product-form-group">
           <input
             type="text"
             name="name"
@@ -184,7 +184,8 @@ const Products = () => {
       {loading ? (
         <p>Loading products...</p>
       ) : (
-        <table style={styles.table}>
+        <div className="table-responsive-wrapper">
+          <table style={styles.table}>
           <thead>
             <tr>
               <th style={styles.th}>Name</th>
@@ -215,7 +216,8 @@ const Products = () => {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
     </div>
   );
@@ -223,7 +225,6 @@ const Products = () => {
 
 const styles = {
   form: { backgroundColor: '#fff', padding: '20px', borderRadius: '8px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
-  formGroup: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' },
   input: { padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', backgroundColor: '#fff' },
   btnPrimary: { padding: '8px 16px', backgroundColor: '#0284c7', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '8px' },
   btnSecondary: { padding: '8px 16px', backgroundColor: '#64748b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' },

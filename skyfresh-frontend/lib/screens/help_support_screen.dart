@@ -16,7 +16,7 @@ class HelpSupportScreen extends StatelessWidget {
     },
     {
       'q': 'What payment methods are supported?',
-      'a': 'Cash on Delivery is available now. Online payments will be added soon.',
+      'a': 'Cash on Delivery and Razorpay payments are available.',
     },
     {
       'q': 'How fresh are the products?',

@@ -20,3 +20,152 @@ body {
   background: #BAE6FD;
   border-radius: 10px;
 }
+
+/* ================== Responsive Layout ================== */
+
+/* Container & Sidebar */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  padding: 24px;
+  background-color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mobile Header */
+.mobile-header {
+  display: none;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background-color: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  margin: -24px -24px 24px -24px;
+}
+
+.hamburger-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #0f172a;
+}
+
+.mobile-header-title {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #0f172a;
+}
+
+/* Sidebar Navigation */
+.sidebar-container {
+  width: 240px;
+  background-color: #0f172a;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 12px;
+  transition: transform 0.3s ease;
+  z-index: 50;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+/* Tables */
+.table-responsive-wrapper {
+  overflow-x: auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Forms & Grids */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.product-form-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* ================== Media Queries ================== */
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+  
+  .main-content {
+    padding: 16px;
+  }
+
+  .mobile-header {
+    display: flex;
+    margin: -16px -16px 16px -16px;
+  }
+
+  .sidebar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transform: translateX(-100%);
+  }
+
+  .sidebar-container.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .sidebar-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .product-form-group {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Make buttons more tappable */
+  button {
+    min-height: 44px;
+  }
+  
+  select, input {
+    min-height: 44px;
+  }
+}

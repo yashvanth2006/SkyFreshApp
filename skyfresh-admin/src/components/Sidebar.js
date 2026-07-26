@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const navItems = [
     { to: '/', icon: '📊', label: 'Dashboard' },
     { to: '/products', icon: '📦', label: 'Products' },
@@ -10,39 +10,38 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside style={styles.sidebar}>
-      <div style={styles.logoContainer}>
-        <h2 style={styles.logoText}>SKYfresh Admin</h2>
-      </div>
-      <nav style={styles.nav}>
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === '/'}
-            style={({ isActive }) => ({
-              ...styles.navLink,
-              ...(isActive ? styles.activeLink : {})
-            })}
-          >
-            <span style={styles.icon}>{item.icon}</span>
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
-    </aside>
+    <>
+      <div 
+        className={`sidebar-overlay ${isOpen ? 'open' : ''}`}
+        onClick={onClose}
+      />
+      <aside className={`sidebar-container ${isOpen ? 'open' : ''}`}>
+        <div style={styles.logoContainer}>
+          <h2 style={styles.logoText}>SKYfresh Admin</h2>
+        </div>
+        <nav style={styles.nav}>
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              onClick={onClose}
+              style={({ isActive }) => ({
+                ...styles.navLink,
+                ...(isActive ? styles.activeLink : {})
+              })}
+            >
+              <span style={styles.icon}>{item.icon}</span>
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+      </aside>
+    </>
   );
 };
 
 const styles = {
-  sidebar: {
-    width: '240px',
-    backgroundColor: '#0f172a',
-    color: '#fff',
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '20px 12px'
-  },
   logoContainer: {
     paddingBottom: '20px',
     borderBottom: '1px solid #1e293b',

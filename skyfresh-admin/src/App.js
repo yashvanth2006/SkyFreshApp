@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Updated paths to match your folder structure
@@ -9,11 +9,17 @@ import Orders from './pages/Orders';
 import Users from './pages/Users';
 
 function App() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <Router>
-      <div className="admin-container" style={{ display: 'flex', minHeight: '100vh' }}>
-        <Sidebar />
-        <main className="main-content" style={{ flex: 1, padding: '24px', backgroundColor: '#f8fafc' }}>
+      <div className="app-container">
+        <Sidebar isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+        <main className="main-content">
+          <div className="mobile-header">
+            <button className="hamburger-btn" onClick={() => setIsMobileMenuOpen(true)}>☰</button>
+            <h2 className="mobile-header-title">SKYfresh Admin</h2>
+          </div>
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/products" element={<Products />} />
