@@ -7,15 +7,6 @@ import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Orders from './pages/Orders';
 import Users from './pages/Users';
-import Login from './pages/Login';
-
-const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('admin_token');
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
-};
 
 const AdminLayout = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -36,22 +27,15 @@ const AdminLayout = ({ children }) => {
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/*" element={
-          <ProtectedRoute>
-            <AdminLayout>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/orders" element={<Orders />} />
-                <Route path="/users" element={<Users />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </AdminLayout>
-          </ProtectedRoute>
-        } />
-      </Routes>
+      <AdminLayout>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AdminLayout>
     </Router>
   );
 }

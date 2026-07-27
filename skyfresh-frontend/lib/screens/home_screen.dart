@@ -12,7 +12,6 @@ import 'package:skyfresh/screens/my_addresses_screen.dart';
 import 'package:skyfresh/screens/help_support_screen.dart';
 import 'package:skyfresh/screens/login_screen.dart';
 import 'package:skyfresh/screens/ai_screen.dart';
-import 'package:skyfresh/screens/admin_dashboard.dart';
 import 'package:skyfresh/services/notification_service.dart';
 import 'cart_screen.dart';
 import 'notifications_screen.dart';
@@ -690,12 +689,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   'My Addresses',
                   subtitle: addressCount == 0 ? 'Add a delivery address' : '$addressCount saved',
                   onTap: _openAddresses,
-                ),
-                _profileTile(
-                  Icons.admin_panel_settings_rounded,
-                  'Admin Dashboard',
-                  subtitle: 'Manage store orders',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminDashboard())),
                 ),
                 _profileTile(
                   Icons.help_outline_rounded,
