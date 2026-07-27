@@ -3,7 +3,6 @@ const router = express.Router();
 const Order = require('../models/Order');
 const User = require('../models/user');
 const Product = require('../models/Product');
-const { requireAuth, requireAdmin } = require('./middleware');
 const { getMessaging } = require('firebase-admin/messaging');
 
 // GET /api/admin/stats - Summary numbers
@@ -26,8 +25,8 @@ router.get('/stats', async (req, res) => {
   }
 });
 
-// GET /api/admin/orders - Fetch all orders (admin only)
-router.get('/orders', requireAuth, requireAdmin, async (req, res) => {
+// GET /api/admin/orders - Fetch all orders (no auth required)
+router.get('/orders', async (req, res) => {
   try {
     const orders = await Order.find()
       .populate('userId', 'phone name')
@@ -38,8 +37,8 @@ router.get('/orders', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// PUT /api/admin/orders/:id/status - Update order status (admin only)
-router.put('/orders/:id/status', requireAuth, requireAdmin, async (req, res) => {
+// PUT /api/admin/orders/:id/status - Update order status (no auth required)
+router.put('/orders/:id/status', async (req, res) => {
   try {
     const { status } = req.body;
     const updatedOrder = await Order.findByIdAndUpdate(

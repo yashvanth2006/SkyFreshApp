@@ -300,10 +300,8 @@ class ApiService {
 
   static Future<List<Map<String, dynamic>>> fetchAllOrders() async {
     try {
-      final token = await getToken();
       final response = await http.get(
         Uri.parse('$baseUrl/admin/orders'),
-        headers: {'Authorization': 'Bearer $token'},
       );
       final data = jsonDecode(response.body);
       if (data['success'] == true && data['orders'] != null) {
@@ -317,12 +315,10 @@ class ApiService {
 
   static Future<Map<String, dynamic>> updateOrderStatus(String orderId, String status) async {
     try {
-      final token = await getToken();
       final response = await http.put(
         Uri.parse('$baseUrl/admin/orders/$orderId/status'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
         },
         body: jsonEncode({'status': status}),
       );

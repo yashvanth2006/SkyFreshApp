@@ -691,13 +691,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: addressCount == 0 ? 'Add a delivery address' : '$addressCount saved',
                   onTap: _openAddresses,
                 ),
-                if (_profile?.role == 'admin')
-                  _profileTile(
-                    Icons.admin_panel_settings_rounded,
-                    'Admin Dashboard',
-                    subtitle: 'Manage store orders',
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminDashboard())),
-                  ),
+                _profileTile(
+                  Icons.admin_panel_settings_rounded,
+                  'Admin Dashboard',
+                  subtitle: 'Manage store orders',
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminDashboard())),
+                ),
                 _profileTile(
                   Icons.help_outline_rounded,
                   'Help & Support',
