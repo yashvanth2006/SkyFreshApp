@@ -54,6 +54,7 @@ class _OtpVerificationScreenState
     }
 
     setState(() => _loading = true);
+    print('🔐 Verifying OTP code: $smsCode');
 
     final credential = PhoneAuthProvider.credential(
       verificationId: widget.verificationId,
@@ -66,12 +67,15 @@ class _OtpVerificationScreenState
   Future<void> _signInWithCredential(
       PhoneAuthCredential credential) async {
     try {
+      print('🔑 Signing in with credential...');
       final userCredential = await FirebaseAuth.instance
           .signInWithCredential(credential);
 
       // Get the Firebase ID token to exchange for our app JWT.
       final idToken =
           await userCredential.user?.getIdToken();
+
+      print('✅ Firebase ID token retrieved: ${idToken != null ? "Success" : "Failed"}');
 
       if (!mounted) return;
 
@@ -82,12 +86,14 @@ class _OtpVerificationScreenState
       }
 
       // Exchange Firebase ID token → app JWT from our backend.
+      print('🔄 Exchanging Firebase token for app JWT...');
       final result = await ApiService.firebaseLogin(idToken);
 
       if (!mounted) return;
       setState(() => _loading = false);
 
       if (result['success'] == true) {
+        print('✅ Login successful');
         _showSnack('Welcome to SKYfresh! 🌿');
         Navigator.pushAndRemoveUntil(
           context,
@@ -95,9 +101,11 @@ class _OtpVerificationScreenState
           (route) => false,
         );
       } else {
+        print('❌ Backend login failed: ${result['message']}');
         _showSnack(result['message'] ?? 'Login failed. Please try again.');
       }
     } on FirebaseAuthException catch (e) {
+      print('❌ FirebaseAuthException: ${e.code} - ${e.message}');
       if (!mounted) return;
       setState(() => _loading = false);
       String msg = 'OTP verification failed';
@@ -110,6 +118,7 @@ class _OtpVerificationScreenState
       }
       _showSnack(msg);
     } catch (e) {
+      print('❌ Unexpected error: $e');
       if (!mounted) return;
       setState(() => _loading = false);
       _showSnack('Something went wrong: $e');

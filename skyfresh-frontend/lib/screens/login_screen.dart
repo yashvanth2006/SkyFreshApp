@@ -38,12 +38,14 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _loading = true);
 
     final phoneNumber = _toE164(raw);
+    print('📱 Sending OTP to phone: $phoneNumber');
 
     await FirebaseAuth.instance.verifyPhoneNumber(
       phoneNumber: phoneNumber,
 
       // Called instantly on Android if Firebase can auto-verify (rare).
       verificationCompleted: (PhoneAuthCredential credential) async {
+        print('✅ Auto-verification completed');
         try {
           final userCredential =
               await FirebaseAuth.instance.signInWithCredential(credential);
@@ -54,6 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
             _navigateToOtp(phoneNumber, '', autoCredential: credential);
           }
         } catch (e) {
+          print('❌ Auto-verification failed: $e');
           if (!mounted) return;
           setState(() => _loading = false);
           _showSnack('Auto-verification failed: $e');
@@ -62,6 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // Fires when Firebase sends the real SMS.
       codeSent: (String verificationId, int? resendToken) {
+        print('✅ OTP code sent. Verification ID: $verificationId');
         if (!mounted) return;
         setState(() => _loading = false);
         _showSnack('OTP sent to $phoneNumber');
@@ -69,6 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
       },
 
       verificationFailed: (FirebaseAuthException e) {
+        print('❌ Verification failed: ${e.code} - ${e.message}');
         if (!mounted) return;
         setState(() => _loading = false);
         String msg = 'Verification failed';
@@ -76,6 +81,8 @@ class _LoginScreenState extends State<LoginScreen> {
           msg = 'Invalid phone number format.';
         } else if (e.code == 'too-many-requests') {
           msg = 'Too many requests. Try again later.';
+        } else if (e.code == 'quota-exceeded') {
+          msg = 'SMS quota exceeded. Try again later.';
         } else if (e.message != null) {
           msg = e.message!;
         }
@@ -83,6 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
       },
 
       codeAutoRetrievalTimeout: (String verificationId) {
+        print('⏱️ Auto-retrieval timeout: $verificationId');
         // Auto-retrieval window closed; user must enter code manually.
       },
 
