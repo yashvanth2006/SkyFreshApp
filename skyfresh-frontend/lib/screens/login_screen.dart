@@ -40,62 +40,59 @@ class _LoginScreenState extends State<LoginScreen> {
     final phoneNumber = _toE164(raw);
     print('📱 Sending OTP to phone: $phoneNumber');
 
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
 
-      // Called instantly on Android if Firebase can auto-verify (rare).
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        print('✅ Auto-verification completed');
-        try {
-          final userCredential =
-              await FirebaseAuth.instance.signInWithCredential(credential);
-          final idToken =
-              await userCredential.user?.getIdToken();
-          if (!mounted) return;
-          if (idToken != null) {
-            _navigateToOtp(phoneNumber, '', autoCredential: credential);
+        // Called instantly on Android if Firebase can auto-verify (rare).
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          print('✅ Auto-verification completed');
+          try {
+            final userCredential =
+                await FirebaseAuth.instance.signInWithCredential(credential);
+            final idToken =
+                await userCredential.user?.getIdToken();
+            if (!mounted) return;
+            if (idToken != null) {
+              _navigateToOtp(phoneNumber, '', autoCredential: credential);
+            }
+          } catch (e) {
+            print('❌ Auto-verification failed: $e');
+            if (!mounted) return;
+            setState(() => _loading = false);
+            _showSnack('Auto-verification failed: $e');
           }
-        } catch (e) {
-          print('❌ Auto-verification failed: $e');
+        },
+
+        // Fires when Firebase sends the real SMS.
+        codeSent: (String verificationId, int? resendToken) {
+          print('✅ OTP code sent. Verification ID: $verificationId');
           if (!mounted) return;
           setState(() => _loading = false);
-          _showSnack('Auto-verification failed: $e');
-        }
-      },
+          _showSnack('OTP sent to $phoneNumber');
+          _navigateToOtp(phoneNumber, verificationId);
+        },
 
-      // Fires when Firebase sends the real SMS.
-      codeSent: (String verificationId, int? resendToken) {
-        print('✅ OTP code sent. Verification ID: $verificationId');
-        if (!mounted) return;
-        setState(() => _loading = false);
-        _showSnack('OTP sent to $phoneNumber');
-        _navigateToOtp(phoneNumber, verificationId);
-      },
+        verificationFailed: (FirebaseAuthException e) {
+          print('❌ Verification failed: ${e.code} - ${e.message}');
+          if (!mounted) return;
+          setState(() => _loading = false);
+          _showSnack(e.message ?? 'Verification failed');
+        },
 
-      verificationFailed: (FirebaseAuthException e) {
-        print('❌ Verification failed: ${e.code} - ${e.message}');
-        if (!mounted) return;
-        setState(() => _loading = false);
-        String msg = 'Verification failed';
-        if (e.code == 'invalid-phone-number') {
-          msg = 'Invalid phone number format.';
-        } else if (e.code == 'too-many-requests') {
-          msg = 'Too many requests. Try again later.';
-        } else if (e.code == 'quota-exceeded') {
-          msg = 'SMS quota exceeded. Try again later.';
-        } else if (e.message != null) {
-          msg = e.message!;
-        }
-        _showSnack(msg);
-      },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          print('⏱️ Auto-retrieval timeout: $verificationId');
+          // Auto-retrieval window closed; user must enter code manually.
+        },
 
-      codeAutoRetrievalTimeout: (String verificationId) {
-        print('⏱️ Auto-retrieval timeout: $verificationId');
-        // Auto-retrieval window closed; user must enter code manually.
-      },
-
-      timeout: const Duration(seconds: 60),
-    );
+        timeout: const Duration(seconds: 60),
+      );
+    } catch (e) {
+      print('❌ Unexpected error in verifyPhoneNumber: $e');
+      if (!mounted) return;
+      setState(() => _loading = false);
+      _showSnack('Failed to send OTP: $e');
+    }
   }
 
   void _navigateToOtp(String phone, String verificationId,
