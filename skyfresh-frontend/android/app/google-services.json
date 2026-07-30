@@ -12,7 +12,20 @@
           "package_name": "com.example.skyfresh"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "392048098425-qea1qjs5sc4307i94631mefe5cmvoi8s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.skyfresh",
+            "certificate_hash": "fc3615cbad834167f3e050a1568be945987be645"
+          }
+        },
+        {
+          "client_id": "392048098425-3rjjq3pkkf22a4h0bllstov7f8jp4jv2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDhjuA8mWA5wv2azz4wikisliezetECmus"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "392048098425-3rjjq3pkkf22a4h0bllstov7f8jp4jv2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
