@@ -16,10 +16,10 @@ void main() async {
       try {
         await Firebase.initializeApp(
           options: const FirebaseOptions(
-            apiKey: 'dummy-key',
-            appId: 'dummy-id',
-            messagingSenderId: 'dummy-sender',
-            projectId: 'dummy-project',
+            apiKey: 'AIzaSyDhjuA8mWA5wv2azz4wikisliezetECmus',
+            appId: '1:392048098425:android:5b71912a0d8f886809a8a8',
+            messagingSenderId: '392048098425',
+            projectId: 'skyfresh-3ddad',
           ),
         );
       } catch (e2) {
