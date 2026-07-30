@@ -1,34 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/cart_provider.dart';
 import 'package:skyfresh/screens/splash_screen.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    await Firebase.initializeApp();
-  } catch (e) {
-    if (kIsWeb) {
-      print("Firebase web options not configured yet. App running without FCM web options.");
-      try {
-        await Firebase.initializeApp(
-          options: const FirebaseOptions(
-            apiKey: 'AIzaSyDhjuA8mWA5wv2azz4wikisliezetECmus',
-            appId: '1:392048098425:android:5b71912a0d8f886809a8a8',
-            messagingSenderId: '392048098425',
-            projectId: 'skyfresh-3ddad',
-          ),
-        );
-      } catch (e2) {
-        print("Fallback Firebase initialization failed: $e2");
-      }
-    } else {
-      print("Firebase initialization error: $e");
-    }
-  }
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const SKYfreshApp());
 }
 
