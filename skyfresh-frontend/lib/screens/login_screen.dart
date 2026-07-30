@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'otp_verification_screen.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import '../api_service.dart';
+import 'home_screen.dart';
 import '../theme.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -11,107 +13,80 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _phoneCtrl = TextEditingController();
   bool _loading = false;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  @override
-  void dispose() {
-    _phoneCtrl.dispose();
-    super.dispose();
-  }
-
-  /// Formats the user-entered number to E.164 (+91XXXXXXXXXX for India).
-  String _toE164(String phone) {
-    final digits = phone.replaceAll(RegExp(r'\D'), '');
-    // If user entered 10 digits, prepend +91
-    if (digits.length == 10) return '+91$digits';
-    // If user already entered +91 or 91 prefix, handle it
-    if (digits.startsWith('91') && digits.length == 12) return '+$digits';
-    // If already has + prefix, return as-is
-    if (phone.startsWith('+')) return phone;
-    // Fallback: prepend +91
-    return '+91$digits';
-  }
-
-  Future<void> _sendOtp() async {
-    final raw = _phoneCtrl.text.trim();
-    if (raw.length < 10) {
-      _showSnack('Please enter a valid phone number');
-      return;
-    }
-
+  Future<void> _signInWithGoogle() async {
     setState(() => _loading = true);
 
-    final phoneNumber = _toE164(raw);
-    print('📱 Sending OTP to phone: $phoneNumber');
-
     try {
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: phoneNumber,
+      print('🔐 Starting Google Sign-In...');
+      
+      // Trigger the Google Sign-In flow
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      
+      if (googleUser == null) {
+        print('❌ User cancelled Google Sign-In');
+        if (!mounted) return;
+        setState(() => _loading = false);
+        _showSnack('Sign-in cancelled');
+        return;
+      }
 
-        // Called instantly on Android if Firebase can auto-verify (rare).
-        verificationCompleted: (PhoneAuthCredential credential) async {
-          print('✅ Auto-verification completed');
-          try {
-            final userCredential =
-                await FirebaseAuth.instance.signInWithCredential(credential);
-            final idToken =
-                await userCredential.user?.getIdToken();
-            if (!mounted) return;
-            if (idToken != null) {
-              _navigateToOtp(phoneNumber, '', autoCredential: credential);
-            }
-          } catch (e) {
-            print('❌ Auto-verification failed: $e');
-            if (!mounted) return;
-            setState(() => _loading = false);
-            _showSnack('Auto-verification failed: $e');
-          }
-        },
+      print('✅ Google Sign-In successful: ${googleUser.email}');
 
-        // Fires when Firebase sends the real SMS.
-        codeSent: (String verificationId, int? resendToken) {
-          print('✅ OTP code sent. Verification ID: $verificationId');
-          if (!mounted) return;
-          setState(() => _loading = false);
-          _showSnack('OTP sent to $phoneNumber');
-          _navigateToOtp(phoneNumber, verificationId);
-        },
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-        verificationFailed: (FirebaseAuthException e) {
-          print('❌ Verification failed: ${e.code} - ${e.message}');
-          if (!mounted) return;
-          setState(() => _loading = false);
-          _showSnack(e.message ?? 'Verification failed');
-        },
-
-        codeAutoRetrievalTimeout: (String verificationId) {
-          print('⏱️ Auto-retrieval timeout: $verificationId');
-          // Auto-retrieval window closed; user must enter code manually.
-        },
-
-        timeout: const Duration(seconds: 60),
+      // Create a new credential
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
       );
-    } catch (e) {
-      print('❌ Unexpected error in verifyPhoneNumber: $e');
+
+      print('🔑 Signing in to Firebase with Google credential...');
+      
+      // Sign in to Firebase with the Google credential
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      
+      print('✅ Firebase sign-in successful');
+
+      // Get the Firebase ID token
+      final idToken = await userCredential.user?.getIdToken();
+      
+      if (!mounted) return;
+
+      if (idToken == null) {
+        setState(() => _loading = false);
+        _showSnack('Could not retrieve auth token. Please try again.');
+        return;
+      }
+
+      // Exchange Firebase ID token for app JWT
+      print('🔄 Exchanging Firebase token for app JWT...');
+      final result = await ApiService.firebaseLogin(idToken);
+
       if (!mounted) return;
       setState(() => _loading = false);
-      _showSnack('Failed to send OTP: $e');
-    }
-  }
 
-  void _navigateToOtp(String phone, String verificationId,
-      {PhoneAuthCredential? autoCredential}) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => OtpVerificationScreen(
-          phone: phone,
-          verificationId: verificationId,
-          autoCredential: autoCredential,
-        ),
-      ),
-    );
+      if (result['success'] == true) {
+        print('✅ Login successful');
+        _showSnack('Welcome to SKYfresh! 🌿');
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (route) => false,
+        );
+      } else {
+        print('❌ Backend login failed: ${result['message']}');
+        _showSnack(result['message'] ?? 'Login failed. Please try again.');
+      }
+    } catch (e) {
+      print('❌ Google Sign-In error: $e');
+      if (!mounted) return;
+      setState(() => _loading = false);
+      _showSnack('Sign-in failed: $e');
+    }
   }
 
   void _showSnack(String msg) {
@@ -183,46 +158,22 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  TextFormField(
-                    controller: _phoneCtrl,
-                    keyboardType: TextInputType.phone,
-                    maxLength: 10,
-                    style: const TextStyle(
-                        color: AppTheme.textMain, fontSize: 16),
-                    validator: (v) =>
-                        v!.length < 10 ? 'Enter valid phone number' : null,
-                    decoration: _inputDecoration('Phone Number', Icons.phone_outlined).copyWith(
-                      prefixText: '+91 ',
-                      counterText: '',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Enter your 10-digit mobile number. We\'ll send a real SMS OTP.',
-                    style: TextStyle(
-                        color: AppTheme.textMuted,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400),
-                  ),
-                  const SizedBox(height: 20),
-
+                  const SizedBox(height: 40),
+                  
                   GestureDetector(
-                    onTap: _loading ? null : _sendOtp,
+                    onTap: _loading ? null : _signInWithGoogle,
                     child: Container(
                       width: double.infinity,
                       height: 60,
                       decoration: BoxDecoration(
-                        gradient:
-                            _loading ? null : AppTheme.greenGradient,
-                        color:
-                            _loading ? AppTheme.surfaceLight : null,
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: AppTheme.border),
                         boxShadow: _loading
                             ? []
                             : [
                                 BoxShadow(
-                                    color: AppTheme.primary
-                                        .withValues(alpha: 0.3),
+                                    color: Colors.black.withOpacity(0.08),
                                     blurRadius: 20,
                                     offset: const Offset(0, 8))
                               ],
@@ -235,14 +186,36 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: CircularProgressIndicator(
                                     color: AppTheme.primary,
                                     strokeWidth: 2.5))
-                            : const Text('Send OTP',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.5)),
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/google_logo.png',
+                                    height: 24,
+                                    width: 24,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(Icons.g_mobiledata, size: 24);
+                                    },
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Continue with Google',
+                                      style: TextStyle(
+                                          color: AppTheme.textMain,
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 0.5)),
+                                ],
+                              ),
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Sign in securely with your Google account',
+                    style: TextStyle(
+                        color: AppTheme.textMuted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400),
                   ),
                 ],
               ),
@@ -250,31 +223,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String label, IconData icon) {
-    return InputDecoration(
-      labelText: label,
-      labelStyle:
-          const TextStyle(color: AppTheme.textMuted, fontSize: 15),
-      prefixIcon: Icon(icon, color: AppTheme.textMuted, size: 22),
-      filled: true,
-      fillColor: AppTheme.surfaceLight,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide:
-            const BorderSide(color: AppTheme.primary, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Colors.redAccent),
-      ),
-      contentPadding: const EdgeInsets.symmetric(vertical: 20),
     );
   }
 }
