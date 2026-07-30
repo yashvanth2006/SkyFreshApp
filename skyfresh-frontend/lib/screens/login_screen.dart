@@ -23,9 +23,14 @@ class _LoginScreenState extends State<LoginScreen> {
   /// Formats the user-entered number to E.164 (+91XXXXXXXXXX for India).
   String _toE164(String phone) {
     final digits = phone.replaceAll(RegExp(r'\D'), '');
-    if (digits.startsWith('91') && digits.length == 12) return '+$digits';
+    // If user entered 10 digits, prepend +91
     if (digits.length == 10) return '+91$digits';
-    return '+$digits'; // pass-through for already formatted numbers
+    // If user already entered +91 or 91 prefix, handle it
+    if (digits.startsWith('91') && digits.length == 12) return '+$digits';
+    // If already has + prefix, return as-is
+    if (phone.startsWith('+')) return phone;
+    // Fallback: prepend +91
+    return '+91$digits';
   }
 
   Future<void> _sendOtp() async {
@@ -181,12 +186,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextFormField(
                     controller: _phoneCtrl,
                     keyboardType: TextInputType.phone,
+                    maxLength: 10,
                     style: const TextStyle(
                         color: AppTheme.textMain, fontSize: 16),
                     validator: (v) =>
                         v!.length < 10 ? 'Enter valid phone number' : null,
-                    decoration:
-                        _inputDecoration('Phone Number', Icons.phone_outlined),
+                    decoration: _inputDecoration('Phone Number', Icons.phone_outlined).copyWith(
+                      prefixText: '+91 ',
+                      counterText: '',
+                    ),
                   ),
                   const SizedBox(height: 8),
                   const Text(
