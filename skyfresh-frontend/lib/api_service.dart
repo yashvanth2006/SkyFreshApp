@@ -65,14 +65,21 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
+      
       final data = jsonDecode(response.body);
+      
+      if (response.statusCode != 200) {
+        throw Exception('Backend Error ${response.statusCode}: ${response.body}');
+      }
+      
       if (data['success'] == true && data['token'] != null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_token', data['token']);
       }
       return data;
     } catch (e) {
-      return {'success': false, 'message': 'Firebase login connection failed'};
+      print('Firebase login API error: $e');
+      return {'success': false, 'message': e.toString()};
     }
   }
 

@@ -96,6 +96,8 @@ router.post('/firebase-login', async (req, res) => {
   try {
     const { idToken, name: customName } = req.body;
 
+    console.log('📥 Firebase login request body:', req.body);
+
     if (!idToken) {
       return res.json({ success: false, message: 'Firebase ID token is required' });
     }
@@ -120,6 +122,8 @@ router.post('/firebase-login', async (req, res) => {
     // Use custom name if provided, otherwise fallback to Google name or email prefix
     const name = customName || decodedToken.name || decodedToken.email?.split('@')[0] || 'User';
 
+    console.log('🔍 Firebase token decoded:', { firebaseUid, email, phoneE164, name, customName });
+
     // 2. Find existing user by firebaseUid, email, or phone (if available)
     let user = await User.findOne({ firebaseUid });
     
@@ -133,6 +137,8 @@ router.post('/firebase-login', async (req, res) => {
       user = await User.findOne({ phone: phoneE164 })
         || await User.findOne({ phone: { $regex: last10 + '$' } });
     }
+
+    console.log('👤 User lookup result:', user ? 'Found existing user' : 'Creating new user');
 
     // 3. Create a new user if none found
     if (!user) {
@@ -155,6 +161,7 @@ router.post('/firebase-login', async (req, res) => {
     }
 
     await user.save();
+    console.log('💾 User saved successfully:', { id: user._id, name: user.name, email: user.email });
 
     // 4. Issue app JWT
     const token = jwt.sign(
@@ -167,7 +174,7 @@ router.post('/firebase-login', async (req, res) => {
     res.json({ success: true, message: 'Logged in successfully', token, user: formatUser(user) });
 
   } catch (err) {
-    console.error('Firebase login error:', err);
+    console.error('❌ Firebase login error:', err);
     res.json({ success: false, message: 'Firebase login failed', error: err.message });
   }
 });
