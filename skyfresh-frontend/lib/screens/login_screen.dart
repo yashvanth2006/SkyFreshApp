@@ -14,11 +14,24 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
+  final _nameCtrl = TextEditingController();
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     serverClientId: '392048098425-3rjjq3pkkf22a4h0bllstov7f8jp4jv2.apps.googleusercontent.com',
   );
 
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _signInWithGoogle() async {
+    final name = _nameCtrl.text.trim();
+    if (name.isEmpty) {
+      _showSnack('Please enter your name first');
+      return;
+    }
+
     setState(() => _loading = true);
 
     try {
@@ -70,9 +83,9 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // Exchange Firebase ID token for app JWT
+      // Exchange Firebase ID token for app JWT with custom name
       print('🔄 Exchanging Firebase token for app JWT...');
-      final result = await ApiService.firebaseLogin(idToken);
+      final result = await ApiService.firebaseLogin(idToken, name: name);
 
       if (!mounted) return;
 
@@ -102,6 +115,31 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showSnack(String msg) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  InputDecoration _inputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle:
+          const TextStyle(color: AppTheme.textMuted, fontSize: 15),
+      prefixIcon: Icon(icon, color: AppTheme.textMuted, size: 22),
+      filled: true,
+      fillColor: AppTheme.surfaceLight,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide:
+            const BorderSide(color: AppTheme.primary, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Colors.redAccent),
+      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 20),
+    );
   }
 
   @override
@@ -169,6 +207,15 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 40),
+                  
+                  TextFormField(
+                    controller: _nameCtrl,
+                    keyboardType: TextInputType.name,
+                    style: const TextStyle(
+                        color: AppTheme.textMain, fontSize: 16),
+                    decoration: _inputDecoration('Full Name', Icons.person_outline),
+                  ),
+                  const SizedBox(height: 24),
                   
                   GestureDetector(
                     onTap: _loading ? null : _signInWithGoogle,

@@ -50,15 +50,20 @@ class ApiService {
 
   /// Exchange a Firebase ID token for the app's JWT session token.
   /// Called after [FirebaseAuth.instance.signInWithCredential] succeeds.
-  static Future<Map<String, dynamic>> firebaseLogin(String? idToken) async {
+  static Future<Map<String, dynamic>> firebaseLogin(String? idToken, {String? name}) async {
     if (idToken == null) {
       return {'success': false, 'message': 'No Firebase ID token available'};
     }
     try {
+      final body = {'idToken': idToken};
+      if (name != null && name.isNotEmpty) {
+        body['name'] = name;
+      }
+      
       final response = await http.post(
         Uri.parse('$baseUrl/auth/firebase-login'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'idToken': idToken}),
+        body: jsonEncode(body),
       );
       final data = jsonDecode(response.body);
       if (data['success'] == true && data['token'] != null) {

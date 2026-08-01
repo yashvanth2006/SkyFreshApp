@@ -94,7 +94,7 @@ router.post('/verify-otp', async (req, res) => {
 // POST /api/auth/firebase-login - Verify Firebase ID token and return app JWT
 router.post('/firebase-login', async (req, res) => {
   try {
-    const { idToken } = req.body;
+    const { idToken, name: customName } = req.body;
 
     if (!idToken) {
       return res.json({ success: false, message: 'Firebase ID token is required' });
@@ -117,7 +117,8 @@ router.post('/firebase-login', async (req, res) => {
     const firebaseUid = decodedToken.uid;
     const email = decodedToken.email;
     const phoneE164 = decodedToken.phone_number; // e.g. "+919876543210"
-    const name = decodedToken.name || decodedToken.email?.split('@')[0] || 'User';
+    // Use custom name if provided, otherwise fallback to Google name or email prefix
+    const name = customName || decodedToken.name || decodedToken.email?.split('@')[0] || 'User';
 
     // 2. Find existing user by firebaseUid, email, or phone (if available)
     let user = await User.findOne({ firebaseUid });
@@ -147,7 +148,9 @@ router.post('/firebase-login', async (req, res) => {
       if (!user.firebaseUid) user.firebaseUid = firebaseUid;
       if (email && !user.email) user.email = email;
       if (phoneE164 && !user.phone) user.phone = phoneE164;
-      if (!user.name) user.name = name;
+      // Always update name if custom name is provided
+      if (customName) user.name = customName;
+      else if (!user.name) user.name = name;
       user.isVerified = true;
     }
 
