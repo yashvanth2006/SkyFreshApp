@@ -14,7 +14,9 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId: '392048098425-3rjjq3pkkf22a4h0bllstov7f8jp4jv2.apps.googleusercontent.com',
+  );
 
   Future<void> _signInWithGoogle() async {
     setState(() => _loading = true);
@@ -37,6 +39,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // Obtain the auth details from the request
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      // Check if idToken is null
+      if (googleAuth.idToken == null) {
+        print('❌ Failed to obtain ID Token from Google');
+        throw Exception('Failed to obtain ID Token from Google');
+      }
+
+      print('✅ Google ID Token obtained');
 
       // Create a new credential
       final credential = GoogleAuthProvider.credential(
@@ -82,10 +92,10 @@ class _LoginScreenState extends State<LoginScreen> {
         _showSnack(result['message'] ?? 'Login failed. Please try again.');
       }
     } catch (e) {
-      print('❌ Google Sign-In error: $e');
+      print('❌ Google Sign-In error: ${e.toString()}');
       if (!mounted) return;
       setState(() => _loading = false);
-      _showSnack('Sign-in failed: $e');
+      _showSnack(e.toString());
     }
   }
 
