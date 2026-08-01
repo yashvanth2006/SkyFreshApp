@@ -657,8 +657,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           name,
                           style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.4, color: AppTheme.textMain),
                         ),
-                        const SizedBox(height: 4),
-                        Text(phone, style: const TextStyle(color: AppTheme.textMuted, fontSize: 14, fontWeight: FontWeight.w600)),
+                        if (phone.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(phone, style: const TextStyle(color: AppTheme.textMuted, fontSize: 14, fontWeight: FontWeight.w600)),
+                        ],
                       ],
                     ),
                   const SizedBox(height: 10),

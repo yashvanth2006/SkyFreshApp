@@ -30,7 +30,6 @@ class _LoginScreenState extends State<LoginScreen> {
       if (googleUser == null) {
         print('❌ User cancelled Google Sign-In');
         if (!mounted) return;
-        setState(() => _loading = false);
         _showSnack('Sign-in cancelled');
         return;
       }
@@ -67,7 +66,6 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (idToken == null) {
-        setState(() => _loading = false);
         _showSnack('Could not retrieve auth token. Please try again.');
         return;
       }
@@ -77,7 +75,6 @@ class _LoginScreenState extends State<LoginScreen> {
       final result = await ApiService.firebaseLogin(idToken);
 
       if (!mounted) return;
-      setState(() => _loading = false);
 
       if (result['success'] == true) {
         print('✅ Login successful');
@@ -94,8 +91,11 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       print('❌ Google Sign-In error: ${e.toString()}');
       if (!mounted) return;
-      setState(() => _loading = false);
       _showSnack(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
