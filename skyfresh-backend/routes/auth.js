@@ -9,6 +9,7 @@ function formatUser(user, stats = {}) {
   return {
     id: user._id,
     name: user.name,
+    email: user.email,
     phone: user.phone,
     role: user.role,
     joinedAt: user.createdAt,
@@ -113,44 +114,53 @@ router.post('/firebase-login', async (req, res) => {
       return res.json({ success: false, message: 'Invalid or expired Firebase token', error: firebaseErr.message });
     }
 
-    const firebaseUid  = decodedToken.uid;
-    const phoneE164    = decodedToken.phone_number; // e.g. "+919876543210"
+    const firebaseUid = decodedToken.uid;
+    const email = decodedToken.email;
+    const phoneE164 = decodedToken.phone_number; // e.g. "+919876543210"
+    const name = decodedToken.name || decodedToken.email?.split('@')[0] || 'User';
 
-    if (!phoneE164) {
-      return res.json({ success: false, message: 'No phone number in Firebase token' });
+    // 2. Find existing user by firebaseUid, email, or phone (if available)
+    let user = await User.findOne({ firebaseUid });
+    
+    if (!user && email) {
+      user = await User.findOne({ email });
     }
-
-    // 2. Find existing user — try E.164 exact match first, then last-10-digit fuzzy match
-    //    (for users registered before E.164 migration)
-    const last10 = phoneE164.replace(/^\+\d{1,3}/, '').slice(-10);
-
-    let user = await User.findOne({ phone: phoneE164 })
-      || await User.findOne({ phone: { $regex: last10 + '$' } });
+    
+    if (!user && phoneE164) {
+      // Try phone lookup as fallback for phone auth users
+      const last10 = phoneE164.replace(/^\+\d{1,3}/, '').slice(-10);
+      user = await User.findOne({ phone: phoneE164 })
+        || await User.findOne({ phone: { $regex: last10 + '$' } });
+    }
 
     // 3. Create a new user if none found
     if (!user) {
       user = new User({
-        phone: phoneE164,
+        email,
+        phone: phoneE164 || null,
+        name,
         firebaseUid,
         isVerified: true,
       });
     } else {
-      // Migrate phone to E.164 and store firebaseUid if missing
-      if (user.phone !== phoneE164) user.phone = phoneE164;
+      // Update existing user with Firebase data
       if (!user.firebaseUid) user.firebaseUid = firebaseUid;
+      if (email && !user.email) user.email = email;
+      if (phoneE164 && !user.phone) user.phone = phoneE164;
+      if (!user.name) user.name = name;
       user.isVerified = true;
     }
 
     await user.save();
 
-    // 4. Issue app JWT (same shape as /verify-otp)
+    // 4. Issue app JWT
     const token = jwt.sign(
-      { id: user._id, phone: user.phone },
+      { id: user._id, phone: user.phone, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    console.log(`🔥 Firebase login: ${phoneE164} (uid: ${firebaseUid})`);
+    console.log(`🔥 Firebase login: ${email || phoneE164} (uid: ${firebaseUid})`);
     res.json({ success: true, message: 'Logged in successfully', token, user: formatUser(user) });
 
   } catch (err) {

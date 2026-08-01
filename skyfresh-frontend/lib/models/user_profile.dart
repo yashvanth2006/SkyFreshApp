@@ -24,7 +24,7 @@ class UserAddress {
 class UserProfile {
   final String id;
   final String name;
-  final String phone;
+  final String? phone;
   final String? email;
   final String? role;
   final DateTime joinedAt;
@@ -34,7 +34,7 @@ class UserProfile {
   UserProfile({
     required this.id,
     required this.name,
-    required this.phone,
+    this.phone,
     this.email,
     this.role,
     required this.joinedAt,
