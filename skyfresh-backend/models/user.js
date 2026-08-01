@@ -6,10 +6,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
+    email: {
+      type: String,
+      trim: true,
+      sparse: true,
+    },
     phone: {
       type: String,
-      required: [true, 'Phone number is required'],
-      unique: true,
+      required: false,
+      sparse: true,
       trim: true
     },
     role: {
