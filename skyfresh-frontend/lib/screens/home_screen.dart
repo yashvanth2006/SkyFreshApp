@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _profileError = false;
   int _selectedCategory = 0;
   int _currentTab = 0;
-  final int _notifCount = 5;
+  int _notifCount = 0;
   
   String _search = '';
   Timer? _debounce;
@@ -52,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadUser();
     _fetchDynamicProducts();
     _initializeNotifications();
+    _fetchNotificationCount();
   }
 
   @override
@@ -92,6 +93,19 @@ class _HomeScreenState extends State<HomeScreen> {
       await NotificationService().initialize();
     } catch (e) {
       print('Error initializing notifications: $e');
+    }
+  }
+
+  Future<void> _fetchNotificationCount() async {
+    try {
+      final notifications = await ApiService.getNotifications();
+      if (mounted) {
+        setState(() {
+          _notifCount = notifications.where((n) => n['unread'] == true).length;
+        });
+      }
+    } catch (e) {
+      print('Error fetching notification count: $e');
     }
   }
 

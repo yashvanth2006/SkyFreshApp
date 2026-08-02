@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skyfresh/models/user_profile.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class ApiService {
   static const String baseUrl = 'https://skyfreshapp.onrender.com/api';
@@ -87,6 +89,15 @@ class ApiService {
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user_token');
+    
+    // Sign out from Google to clear cache
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      serverClientId: '392048098425-3rjjq3pkkf22a4h0bllstov7f8jp4jv2.apps.googleusercontent.com',
+    );
+    await googleSignIn.signOut();
+    
+    // Sign out from Firebase
+    await FirebaseAuth.instance.signOut();
   }
 
   static Future<UserProfile?> getProfile() async {
