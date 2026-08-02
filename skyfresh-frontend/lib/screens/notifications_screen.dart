@@ -133,18 +133,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             style: const TextStyle(color: Colors.white,
                                 fontSize: 12, fontWeight: FontWeight.w700)),
                         ),
-                      GestureDetector(
-                        onTap: _markAllRead,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20)),
-                          child: const Text('Mark all read',
-                            style: TextStyle(color: _Brand.primaryDark,
-                                fontSize: 11.5, fontWeight: FontWeight.w700)),
-                        ),
-                      ),
                     ],
                   ),
                 ],
