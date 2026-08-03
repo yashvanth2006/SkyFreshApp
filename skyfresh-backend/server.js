@@ -62,8 +62,20 @@ const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/skyfresh';
 mongoose
   .connect(MONGO_URI)
-  .then(() => {
+  .then(async () => {
     console.log('Connected to MongoDB');
+    
+    // Drop the old phone_1 index to fix duplicate key error for null values
+    try {
+      await mongoose.connection.collection('users').dropIndex('phone_1');
+      console.log('Dropped old phone_1 index');
+    } catch (err) {
+      // Ignore error if index doesn't exist
+      if (err.code !== 27) {
+        console.log('Note: phone_1 index drop skipped (may not exist):', err.message);
+      }
+    }
+    
     app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => {

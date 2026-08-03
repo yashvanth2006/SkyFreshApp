@@ -142,13 +142,19 @@ router.post('/firebase-login', async (req, res) => {
 
     // 3. Create a new user if none found
     if (!user) {
-      user = new User({
+      const userData = {
         email,
-        phone: phoneE164 || null,
         name,
         firebaseUid,
         isVerified: true,
-      });
+      };
+      
+      // Only add phone if it exists (don't pass null/undefined)
+      if (phoneE164) {
+        userData.phone = phoneE164;
+      }
+      
+      user = new User(userData);
     } else {
       // Update existing user with Firebase data
       if (!user.firebaseUid) user.firebaseUid = firebaseUid;
