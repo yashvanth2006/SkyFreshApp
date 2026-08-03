@@ -4,18 +4,22 @@ const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      trim: true
+      trim: true,
+      default: ''
     },
     email: {
       type: String,
       trim: true,
-      sparse: true,
+      lowercase: true,
+      unique: true,
+      sparse: true
     },
     phone: {
       type: String,
-      required: false,
+      trim: true,
+      unique: true,
       sparse: true,
-      trim: true
+      default: undefined // Omits the field if empty so sparse index works properly
     },
     role: {
       type: String,
@@ -24,8 +28,9 @@ const userSchema = new mongoose.Schema(
     },
     firebaseUid: {
       type: String,
-      default: null,
+      unique: true,
       sparse: true,
+      default: undefined // Prevents duplicate 'null' errors for non-Firebase users
     },
     fcmToken: {
       type: String,
@@ -43,11 +48,13 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
-    addresses: [{
-      label: { type: String, default: 'Home', trim: true },
-      line: { type: String, required: true, trim: true },
-      isDefault: { type: Boolean, default: false },
-    }],
+    addresses: [
+      {
+        label: { type: String, default: 'Home', trim: true },
+        line: { type: String, required: true, trim: true },
+        isDefault: { type: Boolean, default: false }
+      }
+    ]
   },
   {
     timestamps: true
