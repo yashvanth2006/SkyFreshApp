@@ -48,30 +48,24 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
-              ),
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('My Cart 🛒',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800,
+                  const Text('My Cart',
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800,
                         letterSpacing: -0.5, color: AppTheme.textMain)),
                   if (cart.items.isNotEmpty)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppTheme.surfaceLight,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppTheme.border),
+                        color: AppTheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text('${cart.totalItems} items',
-                        style: const TextStyle(color: AppTheme.primaryLight,
-                            fontWeight: FontWeight.w700, fontSize: 12.5)),
+                        style: const TextStyle(color: AppTheme.primaryDark,
+                            fontWeight: FontWeight.w700, fontSize: 13)),
                     ),
                 ],
               ),
@@ -84,27 +78,26 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          width: 96, height: 96,
+                          width: 100, height: 100,
                           decoration: BoxDecoration(
-                            color: AppTheme.surfaceLight,
+                            color: AppTheme.surfaceMuted,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppTheme.border, width: 2)
                           ),
                           child: const Center(
-                            child: Text('🛒', style: TextStyle(fontSize: 44))),
+                            child: Text('🛒', style: TextStyle(fontSize: 48))),
                         ),
                         const SizedBox(height: 24),
                         const Text('Your cart is empty',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800,
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800,
                               letterSpacing: -0.3, color: AppTheme.textMain)),
                         const SizedBox(height: 8),
                         const Text('Add some premium fruits & juices!',
-                          style: TextStyle(color: AppTheme.textMuted, fontSize: 14)),
+                          style: TextStyle(color: AppTheme.textMuted, fontSize: 15, fontWeight: FontWeight.w500)),
                       ],
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                     itemCount: cart.items.length,
                     itemBuilder: (_, i) {
                       final item = cart.items[i];
@@ -114,56 +107,53 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
                         onDismissed: (_) => context.read<CartProvider>()
                             .removeItem(item.name, item.weight),
                         background: Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.only(right: 20),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.only(right: 24),
                           alignment: Alignment.centerRight,
                           decoration: BoxDecoration(
-                            color: Colors.redAccent.withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(18)),
-                          child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+                            color: Colors.redAccent.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20)),
+                          child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
                         ),
                         child: Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(14),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppTheme.surfaceLight,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppTheme.border),
-                            boxShadow: [BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 12, offset: const Offset(0, 4))],
+                            color: AppTheme.surface,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [AppTheme.cardShadow],
                           ),
                           child: Row(
                             children: [
                               Container(
-                                width: 58, height: 58,
+                                width: 64, height: 64,
                                 decoration: BoxDecoration(
-                                  color: AppTheme.surface,
+                                  color: AppTheme.surfaceMuted,
                                   borderRadius: BorderRadius.circular(16)),
                                 child: Center(
                                   child: Text(item.emoji,
-                                    style: const TextStyle(fontSize: 28))),
+                                    style: const TextStyle(fontSize: 32))),
                               ),
-                              const SizedBox(width: 14),
+                              const SizedBox(width: 16),
 
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(item.name,
-                                      style: const TextStyle(fontSize: 14.5,
-                                          fontWeight: FontWeight.w700,
+                                      style: const TextStyle(fontSize: 15,
+                                          fontWeight: FontWeight.w800,
                                           letterSpacing: -0.2,
                                           color: AppTheme.textMain)),
-                                    const SizedBox(height: 2),
-                                    Text(item.weight,
-                                      style: const TextStyle(fontSize: 12,
-                                          color: AppTheme.textMuted, fontWeight: FontWeight.w500)),
                                     const SizedBox(height: 4),
+                                    Text(item.weight,
+                                      style: const TextStyle(fontSize: 13,
+                                          color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
+                                    const SizedBox(height: 6),
                                     Text('₹${item.total}',
-                                      style: const TextStyle(fontSize: 14.5,
+                                      style: const TextStyle(fontSize: 16,
                                           fontWeight: FontWeight.w800,
-                                          color: AppTheme.primaryLight)),
+                                          color: AppTheme.primaryDark)),
                                   ],
                                 ),
                               ),
@@ -171,9 +161,8 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.surface,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: AppTheme.border),
+                                  color: AppTheme.surfaceLight,
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Row(
                                   children: [
@@ -207,54 +196,61 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
 
             if (cart.items.isNotEmpty)
               Container(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+                padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
                 decoration: BoxDecoration(
                   color: AppTheme.surface,
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                   boxShadow: [BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 20, offset: const Offset(0, -6))],
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 24, offset: const Offset(0, -8))],
                 ),
                 child: Column(
                   children: [
                     _summaryRow('Subtotal', '₹${cart.totalPrice}'),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     _summaryRow(
                       'Delivery Fee',
                       deliveryFee == 0 ? 'FREE' : '₹$deliveryFee',
-                      valueColor: deliveryFee == 0 ? AppTheme.primaryLight : AppTheme.textMain,
+                      valueColor: deliveryFee == 0 ? AppTheme.primaryDark : AppTheme.textMain,
                     ),
                     if (deliveryFee > 0) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          color: AppTheme.surfaceLight,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppTheme.border)
+                          color: AppTheme.primary.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Text('Add ₹${500 - cart.totalPrice} more for free delivery',
-                          style: const TextStyle(fontSize: 11.5, color: AppTheme.primaryLight,
-                              fontWeight: FontWeight.w600)),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.local_shipping_rounded, color: AppTheme.primaryDark, size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text('Add ₹${500 - cart.totalPrice} more for free delivery',
+                                style: const TextStyle(fontSize: 13, color: AppTheme.primaryDark,
+                                    fontWeight: FontWeight.w700)),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 20),
                       child: Divider(color: AppTheme.border, height: 1),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Total',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
+                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800,
                               color: AppTheme.textMain)),
                         Text('₹$grandTotal',
-                          style: const TextStyle(fontSize: 26,
+                          style: const TextStyle(fontSize: 28,
                               fontWeight: FontWeight.w800, letterSpacing: -0.5,
                               color: AppTheme.textMain)),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
                     GestureDetector(
                       onTap: _placingOrder
                         ? null
@@ -262,21 +258,19 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
                       child: Container(
                         width: double.infinity, height: 60,
                         decoration: BoxDecoration(
-                          gradient: _placingOrder
-                            ? null
-                            : AppTheme.greenGradient,
+                          gradient: _placingOrder ? null : AppTheme.greenGradient,
                           color: _placingOrder ? AppTheme.surfaceLight : null,
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(20),
                           boxShadow: _placingOrder ? [] : [
                             BoxShadow(
-                              color: AppTheme.primary.withOpacity(0.35),
-                              blurRadius: 16, offset: const Offset(0, 8))
+                              color: AppTheme.primary.withOpacity(0.3),
+                              blurRadius: 20, offset: const Offset(0, 8))
                           ],
                         ),
                         child: Center(
                           child: _placingOrder
                             ? const SizedBox(width: 24, height: 24,
-                                child: CircularProgressIndicator(color: AppTheme.primary, strokeWidth: 2.4))
+                                child: CircularProgressIndicator(color: AppTheme.primary, strokeWidth: 3))
                             : const Text('Proceed to Checkout',
                               style: TextStyle(color: Colors.white,
                                 fontSize: 17, fontWeight: FontWeight.w800)),
@@ -296,9 +290,9 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 14, color: AppTheme.textMuted,
-            fontWeight: FontWeight.w500)),
-        Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700,
+        Text(label, style: const TextStyle(fontSize: 15, color: AppTheme.textMuted,
+            fontWeight: FontWeight.w600)),
+        Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800,
             color: valueColor)),
       ],
     );
@@ -315,12 +309,13 @@ class _QtyBtn extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 30, height: 30,
+        width: 34, height: 34,
         decoration: BoxDecoration(
-          color: AppTheme.surfaceLight,
-          borderRadius: BorderRadius.circular(8),
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 2))],
         ),
-        child: Icon(icon, size: 16, color: AppTheme.textMain),
+        child: Icon(icon, size: 18, color: AppTheme.textMain),
       ),
     );
   }

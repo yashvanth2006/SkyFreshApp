@@ -311,37 +311,101 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Delivery Address', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textMain)),
+            const Text('Delivery Address', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textMain, letterSpacing: -0.3)),
+            const SizedBox(height: 16),
+            _buildTextField(_nameCtrl, 'Full Name *', Icons.person_outline_rounded),
             const SizedBox(height: 12),
-            TextFormField(controller: _nameCtrl, decoration: const InputDecoration(labelText: 'Full Name *'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter full name' : null),
-            const SizedBox(height: 8),
-            TextFormField(controller: _phoneCtrl, decoration: const InputDecoration(labelText: 'Mobile Number *'), keyboardType: TextInputType.phone, validator: (v) => (v == null || v.trim().replaceAll(RegExp(r'[^0-9]'), '').length < 10) ? 'Enter valid phone number' : null),
-            const SizedBox(height: 8),
-            TextFormField(controller: _houseCtrl, decoration: const InputDecoration(labelText: 'House / Flat Number *'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter house/flat number' : null),
-            const SizedBox(height: 8),
-            TextFormField(controller: _streetCtrl, decoration: const InputDecoration(labelText: 'Street / Area *'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter street/area' : null),
-            const SizedBox(height: 8),
-            TextFormField(controller: _cityCtrl, decoration: const InputDecoration(labelText: 'City *'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter city' : null),
-            const SizedBox(height: 8),
-            TextFormField(controller: _stateCtrl, decoration: const InputDecoration(labelText: 'State *'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter state' : null),
-            const SizedBox(height: 8),
-            TextFormField(controller: _pinCtrl, decoration: const InputDecoration(labelText: 'Pincode *'), keyboardType: TextInputType.number, validator: (v) => (v == null || !RegExp(r'^\d+$').hasMatch(v.trim())) ? 'Enter numeric pincode' : null),
+            _buildTextField(_phoneCtrl, 'Mobile Number *', Icons.phone_outlined, keyboardType: TextInputType.phone),
+            const SizedBox(height: 12),
+            _buildTextField(_houseCtrl, 'House / Flat Number *', Icons.home_outlined),
+            const SizedBox(height: 12),
+            _buildTextField(_streetCtrl, 'Street / Area *', Icons.map_outlined),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(child: _buildTextField(_cityCtrl, 'City *', Icons.location_city_outlined)),
+                const SizedBox(width: 12),
+                Expanded(child: _buildTextField(_stateCtrl, 'State *', Icons.map_outlined)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _buildTextField(_pinCtrl, 'Pincode *', Icons.pin_drop_outlined, keyboardType: TextInputType.number),
           ],
         ),
       );
     }
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('Select saved address', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textMain)),
-      const SizedBox(height: 8),
-      ..._savedAddresses.map((address) => RadioListTile<UserAddress>(
-        value: address,
-        groupValue: _selectedAddress,
-        onChanged: (value) => setState(() => _selectedAddress = value),
-        contentPadding: EdgeInsets.zero,
-        title: Text(address.label, style: const TextStyle(fontWeight: FontWeight.w700)),
-        subtitle: Text(address.line),
-      )),
-    ]);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const [
+            Text('Delivery Address', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textMain, letterSpacing: -0.3)),
+            Icon(Icons.edit_location_alt_outlined, color: AppTheme.primaryDark),
+          ],
+        ),
+        const SizedBox(height: 16),
+        ..._savedAddresses.map((address) {
+          final isSelected = _selectedAddress == address;
+          return GestureDetector(
+            onTap: () => setState(() => _selectedAddress = address),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isSelected ? AppTheme.primaryLight.withOpacity(0.3) : AppTheme.surfaceLight,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: isSelected ? AppTheme.primary : AppTheme.border.withOpacity(0.5), width: isSelected ? 2 : 1),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                    color: isSelected ? AppTheme.primary : AppTheme.textMuted,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(address.label, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: isSelected ? AppTheme.primaryDark : AppTheme.textMain)),
+                        const SizedBox(height: 4),
+                        Text(address.line, style: const TextStyle(fontSize: 13, color: AppTheme.textMuted, height: 1.4)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {TextInputType? keyboardType}) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: AppTheme.textMuted, fontSize: 14),
+        prefixIcon: Icon(icon, color: AppTheme.textMuted, size: 20),
+        filled: true,
+        fillColor: AppTheme.surfaceLight,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppTheme.border.withOpacity(0.4))),
+      ),
+      validator: (v) {
+        if (v == null || v.trim().isEmpty) return 'Required';
+        if (label.contains('Mobile') && v.trim().replaceAll(RegExp(r'[^0-9]'), '').length < 10) return 'Invalid phone';
+        return null;
+      },
+    );
   }
 
   @override
@@ -352,116 +416,143 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       appBar: AppBar(
         backgroundColor: AppTheme.surface,
         elevation: 0,
-        title: const Text('Checkout', style: TextStyle(color: AppTheme.textMain)),
+        surfaceTintColor: Colors.transparent,
+        title: const Text('Checkout', style: TextStyle(color: AppTheme.textMain, fontWeight: FontWeight.w800)),
+        centerTitle: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Address Form
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppTheme.border),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [AppTheme.cardShadow],
                 ),
                 child: _deliveryAddressSection(),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
               // Order Summary
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppTheme.border),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [AppTheme.cardShadow],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Order Summary', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textMain)),
-                    const SizedBox(height: 12),
+                    const Text('Order Summary', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textMain, letterSpacing: -0.3)),
+                    const SizedBox(height: 16),
                     ...cart.items.map((i) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.only(bottom: 12),
                       child: Row(
                         children: [
                           Container(
                             width: 48, height: 48,
-                            decoration: BoxDecoration(color: AppTheme.surfaceLight, borderRadius: BorderRadius.circular(10)),
-                            child: Center(child: Text(i.emoji, style: const TextStyle(fontSize: 20))),
+                            decoration: BoxDecoration(color: AppTheme.surfaceMuted, borderRadius: BorderRadius.circular(14)),
+                            child: Center(child: Text(i.emoji, style: const TextStyle(fontSize: 22))),
                           ),
                           const SizedBox(width: 12),
-                          Expanded(child: Text('${i.name} (${i.weight})', style: const TextStyle(fontWeight: FontWeight.w700))),
-                          Text('x${i.quantity}  ', style: const TextStyle(color: AppTheme.textMuted)),
-                          Text('₹${i.total}', style: const TextStyle(fontWeight: FontWeight.w800)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('${i.name} (${i.weight})', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                                const SizedBox(height: 2),
+                                Text('x${i.quantity}', style: const TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                          ),
+                          Text('₹${i.total}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
                         ],
                       ),
                     )),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Divider(),
+                    ),
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Subtotal', style: TextStyle(color: AppTheme.textMuted, fontWeight: FontWeight.w500)), Text('₹${widget.subtotal}', style: const TextStyle(fontWeight: FontWeight.w700))]),
+                    const SizedBox(height: 8),
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Delivery', style: TextStyle(color: AppTheme.textMuted, fontWeight: FontWeight.w500)), Text(widget.deliveryFee == 0 ? 'FREE' : '₹${widget.deliveryFee}', style: TextStyle(color: widget.deliveryFee == 0 ? AppTheme.primaryDark : AppTheme.textMain, fontWeight: FontWeight.w700))]),
                     const SizedBox(height: 12),
-                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Subtotal', style: TextStyle(color: AppTheme.textMuted)), Text('₹${widget.subtotal}')]),
-                    const SizedBox(height: 6),
-                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Delivery Charge', style: TextStyle(color: AppTheme.textMuted)), Text(widget.deliveryFee == 0 ? 'FREE' : '₹${widget.deliveryFee}')]),
-                    const SizedBox(height: 10),
-                    Divider(color: AppTheme.border),
-                    const SizedBox(height: 10),
-                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Grand Total', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)), Text('₹${widget.grandTotal}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800))]),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(color: AppTheme.primaryLight.withOpacity(0.3), borderRadius: BorderRadius.circular(16)),
+                      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Grand Total', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.primaryDark)), Text('₹${widget.grandTotal}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryDark))]),
+                    ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
               // Payment Methods
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: AppTheme.surface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppTheme.border),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [AppTheme.cardShadow],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Payment Method', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textMain)),
-                    const SizedBox(height: 12),
+                    const Text('Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textMain, letterSpacing: -0.3)),
+                    const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () => setState(() => _paymentMethod = 'COD'),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: _paymentMethod == 'COD' ? AppTheme.primary.withOpacity(0.12) : AppTheme.surfaceLight,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: _paymentMethod == 'COD' ? AppTheme.primary : AppTheme.border),
+                          color: _paymentMethod == 'COD' ? AppTheme.primaryLight.withOpacity(0.3) : AppTheme.surfaceLight,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: _paymentMethod == 'COD' ? AppTheme.primary : AppTheme.border.withOpacity(0.5), width: _paymentMethod == 'COD' ? 2 : 1),
                         ),
                         child: Row(
-                          children: const [
-                            Icon(Icons.currency_rupee_rounded, color: AppTheme.primary),
-                            SizedBox(width: 12),
-                            Expanded(child: Text('Cash on Delivery', style: TextStyle(fontWeight: FontWeight.w700))),
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(10)),
+                              child: const Icon(Icons.currency_rupee_rounded, color: AppTheme.primaryDark, size: 20),
+                            ),
+                            const SizedBox(width: 16),
+                            const Expanded(child: Text('Cash on Delivery', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15))),
+                            if (_paymentMethod == 'COD') const Icon(Icons.check_circle_rounded, color: AppTheme.primaryDark),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     GestureDetector(
                       onTap: () => setState(() => _paymentMethod = 'Razorpay'),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: _paymentMethod == 'Razorpay' ? AppTheme.primary.withOpacity(0.12) : AppTheme.surfaceLight,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: _paymentMethod == 'Razorpay' ? AppTheme.primary : AppTheme.border),
+                          color: _paymentMethod == 'Razorpay' ? AppTheme.primaryLight.withOpacity(0.3) : AppTheme.surfaceLight,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: _paymentMethod == 'Razorpay' ? AppTheme.primary : AppTheme.border.withOpacity(0.5), width: _paymentMethod == 'Razorpay' ? 2 : 1),
                         ),
                         child: Row(
-                          children: const [
-                            Icon(Icons.payment_rounded, color: AppTheme.primary),
-                            SizedBox(width: 12),
-                            Expanded(child: Text('Razorpay', style: TextStyle(fontWeight: FontWeight.w700))),
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(color: AppTheme.surface, borderRadius: BorderRadius.circular(10)),
+                              child: const Icon(Icons.credit_card_rounded, color: AppTheme.primaryDark, size: 20),
+                            ),
+                            const SizedBox(width: 16),
+                            const Expanded(child: Text('Razorpay (Cards / UPI)', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15))),
+                            if (_paymentMethod == 'Razorpay') const Icon(Icons.check_circle_rounded, color: AppTheme.primaryDark),
                           ],
                         ),
                       ),
@@ -470,25 +561,32 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 32),
 
               // Place Order Button
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: (_placing || _processingPayment) ? null : () {
-                    if (_paymentMethod == 'Razorpay') {
-                      _openRazorpay();
-                    } else {
-                      _placeOrder();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              GestureDetector(
+                onTap: (_placing || _processingPayment) ? null : () {
+                  if (_paymentMethod == 'Razorpay') {
+                    _openRazorpay();
+                  } else {
+                    _placeOrder();
+                  }
+                },
+                child: Container(
+                  width: double.infinity, height: 64,
+                  decoration: BoxDecoration(
+                    gradient: (_placing || _processingPayment) ? null : AppTheme.greenGradient,
+                    color: (_placing || _processingPayment) ? AppTheme.surfaceMuted : null,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: (_placing || _processingPayment) ? [] : [
+                      BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))
+                    ],
                   ),
-                  child: _placing || _processingPayment ? const CircularProgressIndicator(color: Colors.white) : const Text('Place Order', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                  child: Center(
+                    child: _placing || _processingPayment 
+                      ? const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(color: AppTheme.primaryDark, strokeWidth: 3)) 
+                      : const Text('Place Order', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+                  ),
                 ),
               ),
 

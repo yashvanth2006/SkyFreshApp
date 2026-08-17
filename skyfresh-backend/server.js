@@ -31,10 +31,18 @@ try {
 
 const app = express();
 
-// Allow requests from React frontend ports and production admin panel
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'https://skyfresh-admin.onrender.com'],
+    origin: function (origin, callback) {
+      const allowedOrigins = ['https://skyfresh-admin.onrender.com'];
+      // Allow requests with no origin (like mobile apps or curl requests)
+      // Allow any localhost or 127.0.0.1 port for local development
+      if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,

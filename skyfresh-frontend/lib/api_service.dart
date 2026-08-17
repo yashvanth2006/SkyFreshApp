@@ -7,7 +7,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://skyfreshapp.onrender.com/api';
+  static String get baseUrl {
+    if (kReleaseMode) {
+      return 'https://skyfreshapp.onrender.com/api';
+    }
+    if (kIsWeb) {
+      return 'http://localhost:5000/api';
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'http://10.0.2.2:5000/api';
+    } else {
+      return 'http://localhost:5000/api';
+    }
+  }
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -19,36 +30,6 @@ class ApiService {
     return token != null && token.isNotEmpty;
   }
 
-  static Future<Map<String, dynamic>> sendOtp(String phone) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/send-otp'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': phone}),
-      );
-      return jsonDecode(response.body);
-    } catch (e) {
-      return {'success': false, 'message': 'Failed to send OTP'};
-    }
-  }
-
-  static Future<Map<String, dynamic>> verifyOtp(String phone, String otp) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/verify-otp'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': phone, 'otp': otp}),
-      );
-      final data = jsonDecode(response.body);
-      if (data['success'] == true && data['token'] != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_token', data['token']);
-      }
-      return data;
-    } catch (e) {
-      return {'success': false, 'message': 'Verification connection failed'};
-    }
-  }
 
   /// Exchange a Firebase ID token for the app's JWT session token.
   /// Called after [FirebaseAuth.instance.signInWithCredential] succeeds.
@@ -91,10 +72,15 @@ class ApiService {
     await prefs.remove('user_token');
     
     // Sign out from Google to clear cache
-    final GoogleSignIn googleSignIn = GoogleSignIn(
-      serverClientId: '392048098425-3rjjq3pkkf22a4h0bllstov7f8jp4jv2.apps.googleusercontent.com',
-    );
-    await googleSignIn.signOut();
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        clientId: kIsWeb ? '392048098425-3rjjq3pkkf22a4h0bllstov7f8jp4jv2.apps.googleusercontent.com' : null,
+        serverClientId: kIsWeb ? null : '392048098425-3rjjq3pkkf22a4h0bllstov7f8jp4jv2.apps.googleusercontent.com',
+      );
+      await googleSignIn.signOut();
+    } catch (e) {
+      print('Google sign out error: $e');
+    }
     
     // Sign out from Firebase
     await FirebaseAuth.instance.signOut();
