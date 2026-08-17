@@ -30,36 +30,6 @@ class ApiService {
     return token != null && token.isNotEmpty;
   }
 
-  static Future<Map<String, dynamic>> sendOtp(String phone) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/send-otp'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': phone}),
-      );
-      return jsonDecode(response.body);
-    } catch (e) {
-      return {'success': false, 'message': 'Failed to send OTP'};
-    }
-  }
-
-  static Future<Map<String, dynamic>> verifyOtp(String phone, String otp) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/verify-otp'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': phone, 'otp': otp}),
-      );
-      final data = jsonDecode(response.body);
-      if (data['success'] == true && data['token'] != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_token', data['token']);
-      }
-      return data;
-    } catch (e) {
-      return {'success': false, 'message': 'Verification connection failed'};
-    }
-  }
 
   /// Exchange a Firebase ID token for the app's JWT session token.
   /// Called after [FirebaseAuth.instance.signInWithCredential] succeeds.
