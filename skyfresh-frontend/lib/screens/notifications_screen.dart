@@ -2,19 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/api_service.dart';
 
-class _Brand {
-  static const Color dark = AppTheme.textMain;
-  static const Color primaryDark = Color(0xFF15803D);
-  static const Color primaryLight = Color(0xFF22C55E);
-  static const Color muted = Color(0xFF64748B);
-  static const Color bg = Color(0xFFF6FAF7);
 
-  static const LinearGradient gradient = LinearGradient(
-    colors: [primaryDark, primaryLight],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-}
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -76,14 +64,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   int get _unreadCount => _notifications.where((n) => n['unread'] == true).length;
 
-  Future<void> _markAllRead() async {
-    setState(() {
-      for (var n in _notifications) {
-        n['unread'] = false;
-      }
-    });
-    await ApiService.markAllNotificationsRead();
-  }
+
 
   Future<void> _markRead(int index) async {
     if (_notifications[index]['unread'] == true) {
@@ -104,143 +85,120 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.bg,
-      body: SafeArea(
-        child: Column(
-          children: [
+      appBar: AppBar(
+        backgroundColor: AppTheme.surface,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        title: const Text('Notifications 🔔', style: TextStyle(color: AppTheme.textMain, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
+        centerTitle: true,
+        actions: [
+          if (_unreadCount > 0)
             Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: _Brand.gradient,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+              margin: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryLight.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(20),
               ),
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Text('$_unreadCount new', style: const TextStyle(color: AppTheme.primaryDark, fontSize: 13, fontWeight: FontWeight.w800)),
+            ),
+        ],
+      ),
+      body: _loading 
+        ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryDark, strokeWidth: 3))
+        : _notifications.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Notifications 🔔',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5, color: Colors.white)),
-                  Row(
-                    children: [
-                      if (_unreadCount > 0)
-                        Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.18),
-                            borderRadius: BorderRadius.circular(20)),
-                          child: Text('$_unreadCount new',
-                            style: const TextStyle(color: Colors.white,
-                                fontSize: 12, fontWeight: FontWeight.w700)),
-                        ),
-                    ],
+                  Container(
+                    width: 120, height: 120,
+                    decoration: const BoxDecoration(color: AppTheme.surfaceMuted, shape: BoxShape.circle),
+                    child: const Center(child: Text('🔕', style: TextStyle(fontSize: 56))),
                   ),
+                  const SizedBox(height: 24),
+                  const Text('No notifications yet', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.5, color: AppTheme.textMain)),
+                  const SizedBox(height: 8),
+                  const Text('We\'ll let you know when there\'s news', style: TextStyle(color: AppTheme.textMuted, fontSize: 15, fontWeight: FontWeight.w500)),
                 ],
               ),
-            ),
-            Expanded(
-              child: _loading 
-                ? const Center(child: CircularProgressIndicator())
-                : _notifications.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text('🔕', style: TextStyle(fontSize: 56)),
-                          const SizedBox(height: 14),
-                          const Text('No notifications yet',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
-                                color: _Brand.dark)),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
+            )
+          : ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: _notifications.length,
+            itemBuilder: (_, i) {
+              final n = _notifications[i];
+              return Dismissible(
+                key: ValueKey(n['title'] + n['time']),
+                direction: DismissDirection.endToStart,
+                onDismissed: (_) => _dismiss(i),
+                background: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.only(right: 24),
+                  alignment: Alignment.centerRight,
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 28),
+                ),
+                child: GestureDetector(
+                  onTap: () => _markRead(i),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(16),
-                    itemCount: _notifications.length,
-                    itemBuilder: (_, i) {
-                      final n = _notifications[i];
-                      return Dismissible(
-                        key: ValueKey(n['title'] + n['time']),
-                        direction: DismissDirection.endToStart,
-                        onDismissed: (_) => _dismiss(i),
-                        background: Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.only(right: 20),
-                          alignment: Alignment.centerRight,
+                    decoration: BoxDecoration(
+                      color: n['unread'] == true ? AppTheme.primaryLight.withOpacity(0.15) : AppTheme.surface,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: n['unread'] == true ? AppTheme.primary.withOpacity(0.3) : AppTheme.border.withOpacity(0.5),
+                        width: n['unread'] == true ? 2 : 1,
+                      ),
+                      boxShadow: [AppTheme.cardShadow],
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 56, height: 56,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEF4444),
-                            borderRadius: BorderRadius.circular(18)),
-                          child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+                            color: Color(n['color']).withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Center(child: Text(n['icon'], style: const TextStyle(fontSize: 26))),
                         ),
-                        child: GestureDetector(
-                          onTap: () => _markRead(i),
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: n['unread'] == true
-                                ? Border.all(color: AppTheme.primaryLight.withOpacity(0.8), width: 1.4)
-                                : null,
-                              boxShadow: [BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 12, offset: const Offset(0, 4))],
-                            ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.all(14),
-                                leading: Container(
-                                  width: 52, height: 52,
-                                  decoration: BoxDecoration(
-                                    color: Color(n['color']),
-                                    borderRadius: BorderRadius.circular(15)),
-                                  child: Center(
-                                    child: Text(n['icon'],
-                                      style: const TextStyle(fontSize: 24))),
-                                ),
-                              title: Row(
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
                                 children: [
                                   Expanded(
-                                    child: Text(n['title'],
-                                      style: const TextStyle(fontSize: 14,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: -0.1,
-                                          color: _Brand.dark)),
+                                    child: Text(n['title'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textMain)),
                                   ),
                                   if (n['unread'] == true)
                                     Container(
-                                      width: 8, height: 8,
-                                      decoration: const BoxDecoration(
-                                        color: _Brand.primaryDark, shape: BoxShape.circle),
+                                      width: 10, height: 10,
+                                      margin: const EdgeInsets.only(left: 8),
+                                      decoration: const BoxDecoration(color: AppTheme.primaryDark, shape: BoxShape.circle),
                                     ),
                                 ],
                               ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 5),
-                                  Text(n['body'],
-                                    style: const TextStyle(fontSize: 12.5,
-                                        color: _Brand.muted, height: 1.3)),
-                                  const SizedBox(height: 6),
-                                  Text(n['time'],
-                                    style: const TextStyle(fontSize: 11,
-                                        color: _Brand.primaryDark,
-                                        fontWeight: FontWeight.w600)),
-                                ],
-                              ),
-                            ),
+                              const SizedBox(height: 6),
+                              Text(n['body'], style: const TextStyle(fontSize: 14, color: AppTheme.textMuted, height: 1.4, fontWeight: FontWeight.w500)),
+                              const SizedBox(height: 8),
+                              Text(n['time'], style: const TextStyle(fontSize: 12, color: AppTheme.primaryDark, fontWeight: FontWeight.w700)),
+                            ],
                           ),
                         ),
-                      ),
-                      );
-                    },
+                      ],
+                    ),
                   ),
-            ),
-          ],
-        ),
-      ),
+                ),
+              );
+            },
+          ),
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/api_service.dart';
-import 'package:skyfresh/models/user_profile.dart';
+
 
 // Helper for readable status
 String formatOrderStatus(String status) {
@@ -62,36 +62,39 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
     return Scaffold(
       backgroundColor: AppTheme.bg,
       appBar: AppBar(
-        title: const Text('My Orders'),
+        backgroundColor: AppTheme.surface,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        title: const Text('My Orders', style: TextStyle(color: AppTheme.textMain, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
         centerTitle: true,
       ),
       body: RefreshIndicator(
-        color: AppTheme.primary,
+        color: AppTheme.primaryDark,
         onRefresh: _loadOrders,
         child: _loading
-            ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+            ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryDark, strokeWidth: 3))
             : _orders.isEmpty
                 ? ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     children: [
                       SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.6,
+                        height: MediaQuery.of(context).size.height * 0.65,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              width: 88,
-                              height: 88,
-                              decoration: BoxDecoration(
-                                color: AppTheme.surfaceLight,
-                                borderRadius: BorderRadius.circular(24),
+                              width: 120,
+                              height: 120,
+                              decoration: const BoxDecoration(
+                                color: AppTheme.surfaceMuted,
+                                shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.shopping_bag_outlined, size: 40, color: AppTheme.textMuted),
+                              child: const Icon(Icons.shopping_bag_outlined, size: 56, color: AppTheme.textMuted),
                             ),
-                            const SizedBox(height: 16),
-                            const Text('No orders yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                            const SizedBox(height: 6),
-                            const Text('Your order history will appear here', style: TextStyle(color: AppTheme.textMuted)),
+                            const SizedBox(height: 24),
+                            const Text('No orders yet', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.5, color: AppTheme.textMain)),
+                            const SizedBox(height: 8),
+                            const Text('Your order history will appear here', style: TextStyle(color: AppTheme.textMuted, fontSize: 15, fontWeight: FontWeight.w500)),
                           ],
                         ),
                       ),
@@ -99,7 +102,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                   )
                 : ListView.builder(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                     itemCount: _orders.length,
                     itemBuilder: (_, i) {
                       final order = _orders[i];
@@ -110,73 +113,92 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                       final shortId = orderId.length > 6 ? orderId.substring(orderId.length - 6).toUpperCase() : orderId;
 
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 14),
+                        margin: const EdgeInsets.only(bottom: 20),
                         decoration: BoxDecoration(
                           color: AppTheme.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppTheme.border),
-                          boxShadow: [AppTheme.cardShadow.copyWith(blurRadius: 10, offset: const Offset(0, 4))],
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [AppTheme.cardShadow],
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(20),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Order #$shortId', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Order #$shortId', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.textMain)),
+                                      const SizedBox(height: 4),
+                                      Text(formatRelativeTime(createdAt), style: const TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.w500)),
+                                    ],
+                                  ),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
                                       color: _statusColor(status).withOpacity(0.12),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
                                       formatOrderStatus(status),
-                                      style: TextStyle(color: _statusColor(status), fontWeight: FontWeight.w700, fontSize: 12),
+                                      style: TextStyle(color: _statusColor(status), fontWeight: FontWeight.w800, fontSize: 12),
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 6),
-                              Text(formatRelativeTime(createdAt), style: const TextStyle(color: AppTheme.textMuted, fontSize: 12)),
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 16),
                               ...items.take(3).map((item) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 8),
+                                    padding: const EdgeInsets.only(bottom: 12),
                                     child: Row(
                                       children: [
-                                        Text(item['emoji']?.toString() ?? '🛒', style: const TextStyle(fontSize: 18)),
-                                        const SizedBox(width: 10),
+                                        Container(
+                                          width: 44, height: 44,
+                                          decoration: BoxDecoration(color: AppTheme.surfaceMuted, borderRadius: BorderRadius.circular(12)),
+                                          child: Center(child: Text(item['emoji']?.toString() ?? '🛒', style: const TextStyle(fontSize: 20))),
+                                        ),
+                                        const SizedBox(width: 12),
                                         Expanded(
                                           child: Text(
                                             '${item['name']} x${item['quantity']}',
-                                            style: const TextStyle(fontWeight: FontWeight.w600),
+                                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.textMain),
                                           ),
                                         ),
-                                        Text('₹${item['price']}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                                        Text('₹${item['price']}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.textMain)),
                                       ],
                                     ),
                                   )),
                               if (items.length > 3)
-                                Text('+ ${items.length - 3} more item${items.length - 3 == 1 ? '' : 's'}',
-                                    style: const TextStyle(color: AppTheme.textMuted, fontSize: 12)),
-                              const Divider(height: 24),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Text('+ ${items.length - 3} more item${items.length - 3 == 1 ? '' : 's'}',
+                                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.w600)),
+                                ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8),
+                                child: Divider(),
+                              ),
                               Row(
                                 children: [
-                                  const Icon(Icons.location_on_outlined, size: 16, color: AppTheme.textMuted),
-                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(color: AppTheme.surfaceLight, borderRadius: BorderRadius.circular(10)),
+                                    child: const Icon(Icons.location_on_outlined, size: 18, color: AppTheme.textMuted),
+                                  ),
+                                  const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
                                       order['shippingAddress']?.toString() ?? '',
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.w500, height: 1.4),
                                     ),
                                   ),
+                                  const SizedBox(width: 12),
                                   Text(
                                     '₹${order['totalAmount']}',
-                                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.primaryDark),
+                                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: AppTheme.primaryDark),
                                   ),
                                 ],
                               ),

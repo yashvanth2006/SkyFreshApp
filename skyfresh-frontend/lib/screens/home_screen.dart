@@ -362,12 +362,8 @@ class _HomeScreenState extends State<HomeScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: AppTheme.surface,
-                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(36)),
-                ),
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 26),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
                 child: Column(
                   children: [
                     Row(
@@ -387,35 +383,37 @@ class _HomeScreenState extends State<HomeScreen> {
                         Container(
                           width: 48, height: 48,
                           decoration: BoxDecoration(
-                            color: AppTheme.surfaceLight,
+                            color: AppTheme.surface,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppTheme.border),
+                            boxShadow: [AppTheme.cardShadow.copyWith(blurRadius: 10, offset: const Offset(0, 4))],
+                            border: Border.all(color: AppTheme.surfaceLight),
                           ),
                           child: const Center(
-                            child: Text('🌿', style: TextStyle(fontSize: 24))),
+                            child: Text('🌿', style: TextStyle(fontSize: 22))),
                         ),
                       ],
                     ),
                     const SizedBox(height: 24),
                     Container(
                       decoration: BoxDecoration(
-                        color: AppTheme.surfaceLight,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: AppTheme.border),
+                        color: AppTheme.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [AppTheme.cardShadow],
+                        border: Border.all(color: AppTheme.border.withOpacity(0.4)),
                       ),
                       child: TextField(
                         onChanged: _onSearchChanged,
-                        controller: _searchController, // FIXED: Utilizing dedicated controller
-                        style: const TextStyle(fontSize: 15, color: AppTheme.textMain),
+                        controller: _searchController,
+                        style: const TextStyle(fontSize: 15, color: AppTheme.textMain, fontWeight: FontWeight.w500),
                         decoration: InputDecoration(
                           hintText: 'Search premium fruits...',
-                          hintStyle: const TextStyle(color: AppTheme.textMuted, fontSize: 15),
+                          hintStyle: const TextStyle(color: AppTheme.textMuted, fontSize: 15, fontWeight: FontWeight.w500),
                           prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.textMuted),
                           suffixIcon: _search.isNotEmpty
                             ? IconButton(
                                 icon: const Icon(Icons.close_rounded, color: AppTheme.textMuted, size: 20),
                                 onPressed: () {
-                                  _searchController.clear(); // Clear text field properly
+                                  _searchController.clear();
                                   _onSearchChanged('');
                                   FocusScope.of(context).unfocus();
                                 },
@@ -433,45 +431,45 @@ class _HomeScreenState extends State<HomeScreen> {
 
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                 child: Container(
                   width: double.infinity,
-                  height: 170,
+                  height: 160,
                   decoration: BoxDecoration(
                     gradient: AppTheme.greenGradient,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
-                      BoxShadow(color: AppTheme.primaryDark.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))
+                      BoxShadow(color: AppTheme.primaryDark.withOpacity(0.25), blurRadius: 20, offset: const Offset(0, 8))
                     ],
                   ),
                   child: Stack(
                     children: [
                       Positioned(
-                        right: -10, bottom: -10,
+                        right: -10, bottom: -20,
                         child: Opacity(
                           opacity: 0.15,
-                          child: const Text('🍎', style: TextStyle(fontSize: 120)),
+                          child: const Text('🍏', style: TextStyle(fontSize: 140)),
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 20, 16, 20),
+                        padding: const EdgeInsets.fromLTRB(24, 24, 16, 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Text('Premium Freshness',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800,
+                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800,
                                   letterSpacing: -0.3, color: Colors.white)),
                             const SizedBox(height: 6),
                             const Text('Get 20% off on exotic fruits',
                               style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
-                            const SizedBox(height: 16),
+                            const Spacer(),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.4),
+                                color: AppTheme.surface.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(24),
-                                border: Border.all(color: Colors.white.withOpacity(0.2)),
+                                border: Border.all(color: Colors.white.withOpacity(0.3)),
                               ),
                               child: const Text('Order Now',
                                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
@@ -487,7 +485,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 28, 16, 8),
+                padding: const EdgeInsets.fromLTRB(20, 28, 0, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -496,7 +494,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           letterSpacing: -0.3, color: AppTheme.textMain)),
                     const SizedBox(height: 16),
                     SizedBox(
-                      height: 46,
+                      height: 44,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: _categories.length,
@@ -505,26 +503,29 @@ class _HomeScreenState extends State<HomeScreen> {
                           return GestureDetector(
                             onTap: () {
                               setState(() => _selectedCategory = i);
-                              _fetchDynamicProducts(); // Trigger Backend Filter
+                              _fetchDynamicProducts();
                             },
                             child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 250),
+                              duration: const Duration(milliseconds: 200),
                               margin: const EdgeInsets.only(right: 12),
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                              alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: selected ? AppTheme.primary : AppTheme.surfaceLight,
-                                borderRadius: BorderRadius.circular(24),
-                                border: Border.all(color: selected ? AppTheme.primary : AppTheme.border),
+                                color: selected ? AppTheme.primary : AppTheme.surface,
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(color: selected ? AppTheme.primary : AppTheme.border.withOpacity(0.6)),
                                 boxShadow: selected ? [
                                   BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))
                                 ] : [],
                               ),
                               child: Row(children: [
-                                Text(_categories[i]['icon']!, style: const TextStyle(fontSize: 16)),
-                                const SizedBox(width: 8),
+                                if (selected) ...[
+                                  Text(_categories[i]['icon']!, style: const TextStyle(fontSize: 15)),
+                                  const SizedBox(width: 6),
+                                ],
                                 Text(_categories[i]['name']!,
                                   style: TextStyle(
-                                    fontSize: 14, fontWeight: FontWeight.w700,
+                                    fontSize: 14, fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                                     color: selected ? Colors.white : AppTheme.textMuted)),
                               ]),
                             ),
@@ -539,7 +540,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -555,14 +556,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
             _loading
               ? SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
                   sliver: SliverGrid(
                     delegate: SliverChildBuilderDelegate(
                       (_, __) => const _ProductSkeleton(),
                       childCount: 4,
                     ),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.68,
+                      crossAxisCount: 2, crossAxisSpacing: 16, mainAxisSpacing: 16, childAspectRatio: 0.72,
                     ),
                   ),
                 )
@@ -574,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           children: [
                             const Text('🔍', style: TextStyle(fontSize: 48)),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 16),
                             const Text('No items found',
                               style: TextStyle(color: AppTheme.textMuted, fontSize: 16, fontWeight: FontWeight.w600)),
                           ],
@@ -583,7 +584,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   )
                 : SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
                     sliver: SliverGrid(
                       delegate: SliverChildBuilderDelegate(
                         (_, i) {
@@ -597,7 +598,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         childCount: _products.length,
                       ),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.68,
+                        crossAxisCount: 2, crossAxisSpacing: 16, mainAxisSpacing: 16, childAspectRatio: 0.72,
                       ),
                     ),
                   ),
@@ -612,9 +613,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final phone = _profile?.phone ?? '';
     final orderCount = _profile?.orderCount ?? 0;
     final addressCount = _profile?.addresses.length ?? 0;
-    final role = _profile?.role;
-
-    print('Current User Role: $role');
 
     return RefreshIndicator(
       color: AppTheme.primary,
@@ -623,39 +621,35 @@ class _HomeScreenState extends State<HomeScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
-            child: Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(36)),
-              ),
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 60, 20, 24),
               child: Column(
                 children: [
                   Container(
-                    width: 92,
-                    height: 92,
+                    width: 110,
+                    height: 110,
                     decoration: BoxDecoration(
+                      shape: BoxShape.circle,
                       gradient: AppTheme.greenGradient,
-                      borderRadius: BorderRadius.circular(28),
                       boxShadow: [
-                        BoxShadow(color: AppTheme.primary.withOpacity(0.25), blurRadius: 16, offset: const Offset(0, 8)),
+                        BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 24, offset: const Offset(0, 10)),
                       ],
+                      border: Border.all(color: AppTheme.surface, width: 4),
                     ),
                     child: Center(
                       child: _profileLoading
                           ? const SizedBox(
-                              width: 28,
-                              height: 28,
-                              child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                              width: 32,
+                              height: 32,
+                              child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white),
                             )
                           : Text(
                               name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                              style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w800, color: Colors.white),
+                              style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w800, color: Colors.white),
                             ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   if (_profileError && !_profileLoading)
                     Column(
                       children: [
@@ -669,20 +663,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           name,
-                          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: -0.4, color: AppTheme.textMain),
+                          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.5, color: AppTheme.textMain),
                         ),
                         if (phone.isNotEmpty) ...[
                           const SizedBox(height: 4),
-                          Text(phone, style: const TextStyle(color: AppTheme.textMuted, fontSize: 14, fontWeight: FontWeight.w600)),
+                          Text(phone, style: const TextStyle(color: AppTheme.textMuted, fontSize: 15, fontWeight: FontWeight.w500)),
                         ],
                       ],
                     ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryLight.withOpacity(0.22),
-                      borderRadius: BorderRadius.circular(14),
+                      color: AppTheme.surfaceMuted,
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text('SKYfresh Premium Member', style: TextStyle(color: AppTheme.primaryDark, fontSize: 13, fontWeight: FontWeight.w700)),
                   ),
@@ -690,32 +684,83 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  _buildStatCard('Orders', '$orderCount', Icons.shopping_bag_rounded),
+                  const SizedBox(width: 16),
+                  _buildStatCard('Addresses', '$addressCount', Icons.location_on_rounded),
+                ],
+              ),
+            ),
+          ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
+            padding: const EdgeInsets.fromLTRB(20, 32, 20, 40),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _profileTile(
-                  Icons.shopping_bag_rounded,
-                  'My Orders',
-                  subtitle: orderCount == 0 ? 'No orders yet' : '$orderCount order${orderCount == 1 ? '' : 's'}',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyOrdersScreen())),
-                ),
-                _profileTile(
-                  Icons.location_on_rounded,
-                  'My Addresses',
-                  subtitle: addressCount == 0 ? 'Add a delivery address' : '$addressCount saved',
-                  onTap: _openAddresses,
-                ),
-                _profileTile(
-                  Icons.help_outline_rounded,
-                  'Help & Support',
-                  subtitle: 'Store info, FAQs & contact',
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpSupportScreen()))),
-                _profileTile(Icons.logout_rounded, 'Logout', isDestructive: true, onTap: _logout),
+                const Text('Account', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textMain, letterSpacing: -0.3)),
+                const SizedBox(height: 12),
+                _buildMenuSection([
+                  _profileTile(Icons.shopping_bag_outlined, 'My Orders', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyOrdersScreen()))),
+                  _profileTile(Icons.location_on_outlined, 'My Addresses', onTap: _openAddresses),
+                ]),
+                const SizedBox(height: 28),
+                const Text('Support & Settings', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textMain, letterSpacing: -0.3)),
+                const SizedBox(height: 12),
+                _buildMenuSection([
+                  _profileTile(Icons.help_outline_rounded, 'Help & Support', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpSupportScreen()))),
+                  _profileTile(Icons.logout_rounded, 'Logout', isDestructive: true, onTap: _logout, showBorder: false),
+                ]),
               ]),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String label, String value, IconData icon) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [AppTheme.cardShadow],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: AppTheme.surfaceMuted, borderRadius: BorderRadius.circular(14)),
+              child: Icon(icon, color: AppTheme.primaryDark, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(value, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppTheme.textMain)),
+                const SizedBox(height: 2),
+                Text(label, style: const TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuSection(List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [AppTheme.cardShadow],
+      ),
+      child: Column(
+        children: children,
       ),
     );
   }
@@ -749,38 +794,41 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _profileTile(
     IconData icon,
     String label, {
-    String? subtitle,
     bool isDestructive = false,
     VoidCallback? onTap,
+    bool showBorder = true,
   }) {
     final color = isDestructive ? Colors.redAccent : AppTheme.textMain;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.border),
-        boxShadow: [AppTheme.cardShadow.copyWith(blurRadius: 8, offset: const Offset(0, 3))],
+        border: showBorder ? const Border(bottom: BorderSide(color: AppTheme.surfaceLight, width: 1.5)) : null,
       ),
       child: Material(
         color: Colors.transparent,
-        child: ListTile(
+        child: InkWell(
           onTap: onTap,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          leading: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: isDestructive ? Colors.redAccent.withOpacity(0.1) : AppTheme.primaryLight.withOpacity(0.18),
-              borderRadius: BorderRadius.circular(12),
+          borderRadius: showBorder ? BorderRadius.zero : const BorderRadius.vertical(bottom: Radius.circular(24)),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: isDestructive ? Colors.redAccent.withOpacity(0.08) : AppTheme.surfaceMuted,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: isDestructive ? Colors.redAccent : AppTheme.primaryDark, size: 20),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: color)),
+                ),
+                Icon(Icons.chevron_right_rounded, color: isDestructive ? Colors.redAccent.withOpacity(0.4) : AppTheme.textMuted.withOpacity(0.5)),
+              ],
             ),
-            child: Icon(icon, color: color, size: 21),
           ),
-          title: Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: color)),
-          subtitle: subtitle != null
-              ? Text(subtitle, style: const TextStyle(fontSize: 12, color: AppTheme.textMuted, fontWeight: FontWeight.w500))
-              : null,
-          trailing: Icon(Icons.chevron_right_rounded, color: isDestructive ? Colors.redAccent.withOpacity(0.5) : AppTheme.textMuted),
         ),
       ),
     );
@@ -827,95 +875,91 @@ class _ProductCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppTheme.surfaceLight,
+          color: AppTheme.surface,
           borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 15, offset: const Offset(0, 8))
-          ],
+          boxShadow: [AppTheme.cardShadow],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: product['image'] != null && product['image'].toString().isNotEmpty
-                  ? Image.network(
-                      product['image'],
-                      fit: BoxFit.cover,
-                    )
-                  : Container(
-                      color: Color(product['color']).withOpacity(0.1),
-                      child: Center(
-                        child: Text(product['emoji'], style: const TextStyle(fontSize: 50)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Stack(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceMuted,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                      child: product['image'] != null && product['image'].toString().isNotEmpty
+                        ? Image.network(
+                            product['image'],
+                            fit: BoxFit.cover,
+                          )
+                        : Center(
+                            child: Text(product['emoji'], style: const TextStyle(fontSize: 50)),
+                          ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 10, left: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.eco_rounded, size: 12, color: AppTheme.primaryDark),
+                          SizedBox(width: 4),
+                          Text('Fresh', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.primaryDark)),
+                        ],
                       ),
                     ),
-              ),
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.transparent, Colors.black.withOpacity(0.9)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0.4, 1.0],
-                    )
                   ),
-                ),
+                ],
               ),
-              Positioned(
-                top: 12, left: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(product['name'],
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.textMain),
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 2),
+                  Text(product['unit'],
+                    style: const TextStyle(fontSize: 12, color: AppTheme.textMuted, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.eco_rounded, size: 12, color: AppTheme.primary),
-                      SizedBox(width: 4),
-                      Text('Fresh', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.primary)),
+                      Text(product['price'],
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.primaryDark)),
+                      GestureDetector(
+                        onTap: onAdd,
+                        child: Container(
+                          width: 32, height: 32,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primary,
+                            shape: BoxShape.circle,
+                            boxShadow: [BoxShadow(color: AppTheme.primary.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 3))],
+                          ),
+                          child: const Icon(Icons.add, color: Colors.white, size: 20),
+                        ),
+                      ),
                     ],
                   ),
-                ),
+                ],
               ),
-              Positioned(
-                bottom: 12, left: 12, right: 12,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(product['name'],
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
-                      maxLines: 1, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 2),
-                    Text(product['unit'],
-                      style: const TextStyle(fontSize: 10, color: Colors.white70, fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 5),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(product['price'],
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.primaryLight)),
-                        GestureDetector(
-                          onTap: onAdd,
-                          child: Container(
-                            width: 26, height: 26,
-                            decoration: BoxDecoration(
-                              color: AppTheme.primary,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(Icons.add, color: Colors.white, size: 20),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

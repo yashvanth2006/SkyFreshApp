@@ -138,8 +138,7 @@ class _OtpVerificationScreenState
         backgroundColor: AppTheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back, color: AppTheme.textMain),
+          icon: const Icon(Icons.arrow_back, color: AppTheme.textMain),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -148,29 +147,28 @@ class _OtpVerificationScreenState
           children: [
             Container(
               width: double.infinity,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppTheme.surface,
-                borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(40)),
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(48)),
+                boxShadow: [AppTheme.cardShadow],
               ),
-              padding:
-                  const EdgeInsets.fromLTRB(24, 20, 24, 40),
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 48),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('Enter OTP',
                       style: TextStyle(
-                          fontSize: 42,
+                          fontSize: 48,
                           fontWeight: FontWeight.w900,
                           height: 1.1,
-                          letterSpacing: -1.2,
+                          letterSpacing: -1.5,
                           color: AppTheme.textMain)),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   Text(
                       'Enter the 6-digit code sent via SMS to ${widget.phone}',
                       style: const TextStyle(
                           color: AppTheme.textMuted,
-                          fontSize: 15,
+                          fontSize: 16,
                           fontWeight: FontWeight.w500,
                           height: 1.5)),
                 ],
@@ -181,6 +179,7 @@ class _OtpVerificationScreenState
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
+                  const SizedBox(height: 16),
                   if (widget.autoCredential != null)
                     const Padding(
                       padding: EdgeInsets.only(bottom: 16),
@@ -188,11 +187,13 @@ class _OtpVerificationScreenState
                         children: [
                           CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: AppTheme.primary),
-                          SizedBox(width: 12),
+                              color: AppTheme.primaryDark),
+                          SizedBox(width: 16),
                           Text('Auto-verifying…',
                               style: TextStyle(
-                                  color: AppTheme.textMuted)),
+                                  color: AppTheme.textMuted,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500)),
                         ],
                       ),
                     )
@@ -204,61 +205,52 @@ class _OtpVerificationScreenState
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                           color: AppTheme.textMain,
-                          fontSize: 24,
-                          letterSpacing: 8),
+                          fontSize: 28,
+                          letterSpacing: 12,
+                          fontWeight: FontWeight.w800),
                       decoration:
                           _inputDecoration('OTP', Icons.lock_outline)
                               .copyWith(
                         counterText: '',
                         hintText: '000000',
                         hintStyle:
-                            const TextStyle(letterSpacing: 8),
+                            const TextStyle(letterSpacing: 12, color: Colors.black26),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
 
                     GestureDetector(
                       onTap: _loading ? null : _verifyOtp,
                       child: Container(
                         width: double.infinity,
-                        height: 60,
+                        height: 64,
                         decoration: BoxDecoration(
-                          gradient: _loading
-                              ? null
-                              : AppTheme.greenGradient,
-                          color: _loading
-                              ? AppTheme.surfaceLight
-                              : null,
-                          borderRadius:
-                              BorderRadius.circular(18),
+                          gradient: _loading ? null : AppTheme.greenGradient,
+                          color: _loading ? AppTheme.surfaceMuted : null,
+                          borderRadius: BorderRadius.circular(20),
                           boxShadow: _loading
                               ? []
                               : [
                                   BoxShadow(
-                                      color: AppTheme.primary
-                                          .withValues(alpha: 0.3),
+                                      color: AppTheme.primary.withOpacity(0.3),
                                       blurRadius: 20,
-                                      offset:
-                                          const Offset(0, 8))
+                                      offset: const Offset(0, 8))
                                 ],
                         ),
                         child: Center(
                           child: _loading
                               ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
+                                  width: 28,
+                                  height: 28,
                                   child:
                                       CircularProgressIndicator(
-                                          color:
-                                              AppTheme.primary,
-                                          strokeWidth: 2.5))
+                                          color: AppTheme.primaryDark,
+                                          strokeWidth: 3))
                               : const Text('Verify & Login',
                                   style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 17,
-                                      fontWeight:
-                                          FontWeight.w800,
-                                      letterSpacing: 0.5)),
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800)),
                         ),
                       ),
                     ),
@@ -275,27 +267,26 @@ class _OtpVerificationScreenState
   InputDecoration _inputDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(
-          color: AppTheme.textMuted, fontSize: 15),
-      prefixIcon:
-          Icon(icon, color: AppTheme.textMuted, size: 22),
+      labelStyle: const TextStyle(color: AppTheme.textMuted, fontSize: 15),
+      prefixIcon: Icon(icon, color: AppTheme.textMuted, size: 22),
       filled: true,
       fillColor: AppTheme.surfaceLight,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide:
-            const BorderSide(color: AppTheme.primary, width: 2),
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: BorderSide(color: AppTheme.border.withOpacity(0.5)),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide:
-            const BorderSide(color: Colors.redAccent)),
-      contentPadding:
-          const EdgeInsets.symmetric(vertical: 20),
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: Colors.redAccent)),
+      contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
     );
   }
 }
