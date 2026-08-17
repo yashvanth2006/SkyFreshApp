@@ -7,7 +7,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://skyfreshapp.onrender.com/api';
+  static String get baseUrl {
+    if (kReleaseMode) {
+      return 'https://skyfreshapp.onrender.com/api';
+    }
+    if (kIsWeb) {
+      return 'http://localhost:5000/api';
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'http://10.0.2.2:5000/api';
+    } else {
+      return 'http://localhost:5000/api';
+    }
+  }
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -91,10 +102,15 @@ class ApiService {
     await prefs.remove('user_token');
     
     // Sign out from Google to clear cache
-    final GoogleSignIn googleSignIn = GoogleSignIn(
-      serverClientId: '392048098425-3rjjq3pkkf22a4h0bllstov7f8jp4jv2.apps.googleusercontent.com',
-    );
-    await googleSignIn.signOut();
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        clientId: kIsWeb ? '392048098425-3rjjq3pkkf22a4h0bllstov7f8jp4jv2.apps.googleusercontent.com' : null,
+        serverClientId: kIsWeb ? null : '392048098425-3rjjq3pkkf22a4h0bllstov7f8jp4jv2.apps.googleusercontent.com',
+      );
+      await googleSignIn.signOut();
+    } catch (e) {
+      print('Google sign out error: $e');
+    }
     
     // Sign out from Firebase
     await FirebaseAuth.instance.signOut();

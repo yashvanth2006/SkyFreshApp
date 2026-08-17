@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -16,7 +17,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
   final _nameCtrl = TextEditingController();
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    serverClientId: '392048098425-3rjjq3pkkf22a4h0bllstov7f8jp4jv2.apps.googleusercontent.com',
+    clientId: kIsWeb ? '392048098425-3rjjq3pkkf22a4h0bllstov7f8jp4jv2.apps.googleusercontent.com' : null,
+    serverClientId: kIsWeb ? null : '392048098425-3rjjq3pkkf22a4h0bllstov7f8jp4jv2.apps.googleusercontent.com',
   );
 
   @override
@@ -37,44 +39,57 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       print('🔐 Starting Google Sign-In...');
       
-      // Trigger the Google Sign-In flow
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      
-      if (googleUser == null) {
-        print('❌ User cancelled Google Sign-In');
-        if (!mounted) return;
-        _showSnack('Sign-in cancelled');
-        return;
+      String? idToken;
+
+      if (kIsWeb) {
+        print('🌐 Using Firebase Auth Popup for Web...');
+        final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        // Optional: add scopes if needed
+        // googleProvider.addScope('email');
+        
+        final userCredential = await FirebaseAuth.instance.signInWithPopup(googleProvider);
+        print('✅ Firebase sign-in successful');
+        idToken = await userCredential.user?.getIdToken();
+      } else {
+        // Trigger the Google Sign-In flow for Android/iOS
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        
+        if (googleUser == null) {
+          print('❌ User cancelled Google Sign-In');
+          if (!mounted) return;
+          _showSnack('Sign-in cancelled');
+          return;
+        }
+
+        print('✅ Google Sign-In successful: ${googleUser.email}');
+
+        // Obtain the auth details from the request
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+        // Check if idToken is null
+        if (googleAuth.idToken == null) {
+          print('❌ Failed to obtain ID Token from Google');
+          throw Exception('Failed to obtain ID Token from Google');
+        }
+
+        print('✅ Google ID Token obtained');
+
+        // Create a new credential
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        print('🔑 Signing in to Firebase with Google credential...');
+        
+        // Sign in to Firebase with the Google credential
+        final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+        
+        print('✅ Firebase sign-in successful');
+
+        // Get the Firebase ID token
+        idToken = await userCredential.user?.getIdToken();
       }
-
-      print('✅ Google Sign-In successful: ${googleUser.email}');
-
-      // Obtain the auth details from the request
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-      // Check if idToken is null
-      if (googleAuth.idToken == null) {
-        print('❌ Failed to obtain ID Token from Google');
-        throw Exception('Failed to obtain ID Token from Google');
-      }
-
-      print('✅ Google ID Token obtained');
-
-      // Create a new credential
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      print('🔑 Signing in to Firebase with Google credential...');
-      
-      // Sign in to Firebase with the Google credential
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-      
-      print('✅ Firebase sign-in successful');
-
-      // Get the Firebase ID token
-      final idToken = await userCredential.user?.getIdToken();
       
       if (!mounted) return;
 
