@@ -114,8 +114,9 @@ class _SplashScreenState extends State<SplashScreen>
                         boxShadow: [AppTheme.cardShadow],
                         border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
                       ),
-                      child: Center(
-                        child: Icon(Icons.spa_rounded, size: 64, color: AppTheme.primary),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset('assets/icon.png', width: 80, height: 80, fit: BoxFit.cover),
                       ),
                     ),
                     const SizedBox(height: 32),

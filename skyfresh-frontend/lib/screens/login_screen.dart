@@ -184,12 +184,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.eco_rounded, color: AppTheme.primaryDark, size: 18),
-                        SizedBox(width: 8),
-                        Text('SKYfresh',
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: Image.asset('assets/icon.png', width: 20, height: 20, fit: BoxFit.cover),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text('SKYfresh',
                             style: TextStyle(
                                 color: AppTheme.primaryDark,
                                 fontWeight: FontWeight.w800,
