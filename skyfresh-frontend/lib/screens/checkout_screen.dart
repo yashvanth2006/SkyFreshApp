@@ -6,6 +6,8 @@ import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/api_service.dart';
 import 'package:skyfresh/models/user_profile.dart';
 import 'package:skyfresh/screens/order_success_screen.dart';
+import 'package:skyfresh/widgets/animated_pressable.dart';
+import 'package:skyfresh/widgets/premium_image.dart';
 
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'razorpay_stub.dart' if (dart.library.js) 'razorpay_web.dart';
@@ -354,9 +356,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isSelected ? AppTheme.primaryLight.withOpacity(0.3) : AppTheme.surfaceLight,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: isSelected ? AppTheme.primary : AppTheme.border.withOpacity(0.5), width: isSelected ? 2 : 1),
+                color: isSelected ? AppTheme.primaryLight.withValues(alpha: 0.3) : AppTheme.surfaceLight,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: isSelected ? AppTheme.primary : AppTheme.border.withValues(alpha: 0.5), width: isSelected ? 2 : 1),
               ),
               child: Row(
                 children: [
@@ -398,7 +400,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppTheme.border.withOpacity(0.4))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppTheme.border.withValues(alpha: 0.4))),
       ),
       validator: (v) {
         if (v == null || v.trim().isEmpty) return 'Required';
@@ -458,8 +460,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         children: [
                           Container(
                             width: 48, height: 48,
-                            decoration: BoxDecoration(color: AppTheme.surfaceMuted, borderRadius: BorderRadius.circular(14)),
-                            child: Center(child: Text(i.emoji, style: const TextStyle(fontSize: 22))),
+                            decoration: BoxDecoration(color: AppTheme.surfaceLight, borderRadius: BorderRadius.circular(14)),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(14),
+                              child: PremiumImage(
+                                imageUrl: i.image,
+                                fallbackUrl: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=400&auto=format&fit=crop',
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -486,7 +494,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(color: AppTheme.primaryLight.withOpacity(0.3), borderRadius: BorderRadius.circular(16)),
+                      decoration: BoxDecoration(color: AppTheme.primaryLight.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(16)),
                       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Grand Total', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.primaryDark)), Text('₹${widget.grandTotal}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryDark))]),
                     ),
                   ],
@@ -508,15 +516,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   children: [
                     const Text('Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textMain, letterSpacing: -0.3)),
                     const SizedBox(height: 16),
-                    GestureDetector(
+                    AnimatedPressable(
                       onTap: () => setState(() => _paymentMethod = 'COD'),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: _paymentMethod == 'COD' ? AppTheme.primaryLight.withOpacity(0.3) : AppTheme.surfaceLight,
+                          color: _paymentMethod == 'COD' ? AppTheme.primaryLight.withValues(alpha: 0.3) : AppTheme.surfaceLight,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: _paymentMethod == 'COD' ? AppTheme.primary : AppTheme.border.withOpacity(0.5), width: _paymentMethod == 'COD' ? 2 : 1),
+                          border: Border.all(color: _paymentMethod == 'COD' ? AppTheme.primary : AppTheme.border.withValues(alpha: 0.5), width: _paymentMethod == 'COD' ? 2 : 1),
                         ),
                         child: Row(
                           children: [
@@ -533,15 +541,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    GestureDetector(
+                    AnimatedPressable(
                       onTap: () => setState(() => _paymentMethod = 'Razorpay'),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: _paymentMethod == 'Razorpay' ? AppTheme.primaryLight.withOpacity(0.3) : AppTheme.surfaceLight,
+                          color: _paymentMethod == 'Razorpay' ? AppTheme.primaryLight.withValues(alpha: 0.3) : AppTheme.surfaceLight,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: _paymentMethod == 'Razorpay' ? AppTheme.primary : AppTheme.border.withOpacity(0.5), width: _paymentMethod == 'Razorpay' ? 2 : 1),
+                          border: Border.all(color: _paymentMethod == 'Razorpay' ? AppTheme.primary : AppTheme.border.withValues(alpha: 0.5), width: _paymentMethod == 'Razorpay' ? 2 : 1),
                         ),
                         child: Row(
                           children: [
@@ -564,7 +572,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SizedBox(height: 32),
 
               // Place Order Button
-              GestureDetector(
+              AnimatedPressable(
                 onTap: (_placing || _processingPayment) ? null : () {
                   if (_paymentMethod == 'Razorpay') {
                     _openRazorpay();
@@ -579,7 +587,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     color: (_placing || _processingPayment) ? AppTheme.surfaceMuted : null,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: (_placing || _processingPayment) ? [] : [
-                      BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))
+                      BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))
                     ],
                   ),
                   child: Center(

@@ -13,6 +13,8 @@ import 'package:skyfresh/screens/help_support_screen.dart';
 import 'package:skyfresh/screens/login_screen.dart';
 import 'package:skyfresh/screens/ai_screen.dart';
 import 'package:skyfresh/services/notification_service.dart';
+import 'package:skyfresh/widgets/premium_image.dart';
+import 'package:skyfresh/widgets/animated_pressable.dart';
 import 'cart_screen.dart';
 import 'notifications_screen.dart';
 
@@ -39,11 +41,11 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> _products = [];
   bool _loading = true;
 
-  final List<Map<String, String>> _categories = [
-    {'name': 'All',        'icon': '🛒'},
-    {'name': 'Fruits',     'icon': '🍎'},
-    {'name': 'Juices',     'icon': '🥤'},
-    {'name': 'Fresh Cuts', 'icon': '🍉'},
+  final List<Map<String, dynamic>> _categories = [
+    {'name': 'All',        'icon': Icons.apps_rounded},
+    {'name': 'Fruits',     'icon': Icons.eco_rounded},
+    {'name': 'Juices',     'icon': Icons.local_drink_rounded},
+    {'name': 'Fresh Cuts', 'icon': Icons.restaurant_menu_rounded},
   ];
 
   @override
@@ -208,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: AppTheme.surface,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, -4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 20, offset: const Offset(0, -4)),
         ],
       ),
       child: SafeArea(
@@ -254,40 +256,50 @@ class _HomeScreenState extends State<HomeScreen> {
     final color = selected ? AppTheme.primary : AppTheme.textMuted;
 
     return Expanded(
-      child: InkWell(
+      child: AnimatedPressable(
         onTap: () => _onTabTap(index),
+        scaleDown: 0.9,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(icon, color: color, size: 24),
-                if (badge != null)
-                  Positioned(
-                    right: -8,
-                    top: -4,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primary,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppTheme.surface, width: 1.5),
-                      ),
-                      child: Text(
-                        badge,
-                        style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+              padding: EdgeInsets.symmetric(horizontal: selected ? 20 : 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: selected ? AppTheme.primaryLight.withValues(alpha: 0.3) : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(icon, color: color, size: selected ? 26 : 24),
+                  if (badge != null)
+                    Positioned(
+                      right: -8,
+                      top: -4,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppTheme.surface, width: 1.5),
+                        ),
+                        child: Text(
+                          badge,
+                          style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800),
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
                 fontSize: 11,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
                 color: color,
               ),
             ),
@@ -320,13 +332,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primary.withOpacity(selected ? 0.45 : 0.3),
+                      color: AppTheme.primary.withValues(alpha: selected ? 0.45 : 0.3),
                       blurRadius: selected ? 16 : 12,
                       offset: const Offset(0, 4),
                     ),
                   ],
                   border: Border.all(
-                    color: selected ? Colors.white : Colors.white.withOpacity(0.5),
+                    color: selected ? Colors.white : Colors.white.withValues(alpha: 0.5),
                     width: 2,
                   ),
                 ),
@@ -380,16 +392,23 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: TextStyle(color: AppTheme.textMuted, fontSize: 14, fontWeight: FontWeight.w500)),
                           ],
                         ),
-                        Container(
-                          width: 48, height: 48,
-                          decoration: BoxDecoration(
-                            color: AppTheme.surface,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [AppTheme.cardShadow.copyWith(blurRadius: 10, offset: const Offset(0, 4))],
-                            border: Border.all(color: AppTheme.surfaceLight),
+                        AnimatedPressable(
+                          onTap: () => _onTabTap(4),
+                          child: Container(
+                            width: 48, height: 48,
+                            decoration: BoxDecoration(
+                              color: AppTheme.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [AppTheme.softShadow],
+                              border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+                            ),
+                            child: Center(
+                              child: Text(
+                                _userName.isNotEmpty && _userName != 'there' ? _userName[0].toUpperCase() : 'U',
+                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.primaryDark),
+                              ),
+                            ),
                           ),
-                          child: const Center(
-                            child: Text('🌿', style: TextStyle(fontSize: 22))),
                         ),
                       ],
                     ),
@@ -399,7 +418,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: AppTheme.surface,
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [AppTheme.cardShadow],
-                        border: Border.all(color: AppTheme.border.withOpacity(0.4)),
+                        border: Border.all(color: AppTheme.border.withValues(alpha: 0.4)),
                       ),
                       child: TextField(
                         onChanged: _onSearchChanged,
@@ -432,52 +451,67 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: Container(
-                  width: double.infinity,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.greenGradient,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(color: AppTheme.primaryDark.withOpacity(0.25), blurRadius: 20, offset: const Offset(0, 8))
-                    ],
-                  ),
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        right: -10, bottom: -20,
-                        child: Opacity(
-                          opacity: 0.15,
-                          child: const Text('🍏', style: TextStyle(fontSize: 140)),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 24, 16, 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text('Premium Freshness',
-                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.3, color: Colors.white)),
-                            const SizedBox(height: 6),
-                            const Text('Get 20% off on exotic fruits',
-                              style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: AppTheme.surface.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(24),
-                                border: Border.all(color: Colors.white.withOpacity(0.3)),
-                              ),
-                              child: const Text('Order Now',
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+                child: AnimatedPressable(
+                  onTap: () {}, // Banner action
+                  child: Container(
+                    width: double.infinity,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [AppTheme.cardShadow],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: PremiumImage(
+                              fallbackUrl: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=1470&auto=format&fit=crop', // Realistic fresh fruit background
                             ),
-                          ],
-                        ),
+                          ),
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppTheme.primaryDark.withValues(alpha: 0.85),
+                                    AppTheme.primaryDark.withValues(alpha: 0.2),
+                                  ],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 24, 16, 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text('Premium Freshness',
+                                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800,
+                                      letterSpacing: -0.3, color: Colors.white)),
+                                const SizedBox(height: 6),
+                                const Text('Get 20% off on exotic fruits',
+                                  style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
+                                const Spacer(),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+                                  ),
+                                  child: const Text('Order Now',
+                                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -500,7 +534,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemCount: _categories.length,
                         itemBuilder: (_, i) {
                           final selected = i == _selectedCategory;
-                          return GestureDetector(
+                          return AnimatedPressable(
                             onTap: () {
                               setState(() => _selectedCategory = i);
                               _fetchDynamicProducts();
@@ -508,22 +542,22 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               margin: const EdgeInsets.only(right: 12),
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
                                 color: selected ? AppTheme.primary : AppTheme.surface,
                                 borderRadius: BorderRadius.circular(22),
-                                border: Border.all(color: selected ? AppTheme.primary : AppTheme.border.withOpacity(0.6)),
+                                border: Border.all(color: selected ? AppTheme.primary : AppTheme.border.withValues(alpha: 0.6)),
                                 boxShadow: selected ? [
-                                  BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))
+                                  BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))
                                 ] : [],
                               ),
                               child: Row(children: [
                                 if (selected) ...[
-                                  Text(_categories[i]['icon']!, style: const TextStyle(fontSize: 15)),
-                                  const SizedBox(width: 6),
+                                  Icon(_categories[i]['icon'] as IconData, size: 18, color: Colors.white),
+                                  const SizedBox(width: 8),
                                 ],
-                                Text(_categories[i]['name']!,
+                                Text(_categories[i]['name'] as String,
                                   style: TextStyle(
                                     fontSize: 14, fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                                     color: selected ? Colors.white : AppTheme.textMuted)),
@@ -574,7 +608,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.all(40),
                         child: Column(
                           children: [
-                            const Text('🔍', style: TextStyle(fontSize: 48)),
+                            const Icon(Icons.search_off_rounded, size: 48, color: AppTheme.textMuted),
                             const SizedBox(height: 16),
                             const Text('No items found',
                               style: TextStyle(color: AppTheme.textMuted, fontSize: 16, fontWeight: FontWeight.w600)),
@@ -625,29 +659,42 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.fromLTRB(20, 60, 20, 24),
               child: Column(
                 children: [
-                  Container(
-                    width: 110,
-                    height: 110,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: AppTheme.greenGradient,
-                      boxShadow: [
-                        BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 24, offset: const Offset(0, 10)),
-                      ],
-                      border: Border.all(color: AppTheme.surface, width: 4),
-                    ),
-                    child: Center(
-                      child: _profileLoading
-                          ? const SizedBox(
-                              width: 32,
-                              height: 32,
-                              child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white),
-                            )
-                          : Text(
-                              name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                              style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w800, color: Colors.white),
-                            ),
-                    ),
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 140,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppTheme.primaryLight.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      Container(
+                        width: 110,
+                        height: 110,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: AppTheme.greenGradient,
+                          boxShadow: [
+                            BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 24, offset: const Offset(0, 10)),
+                          ],
+                          border: Border.all(color: AppTheme.surface, width: 4),
+                        ),
+                        child: Center(
+                          child: _profileLoading
+                              ? const SizedBox(
+                                  width: 32,
+                                  height: 32,
+                                  child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white),
+                                )
+                              : Text(
+                                  name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                                  style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w800, color: Colors.white),
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 20),
                   if (_profileError && !_profileLoading)
@@ -700,19 +747,15 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.fromLTRB(20, 32, 20, 40),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                const Text('Account', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textMain, letterSpacing: -0.3)),
+                const Text('Account Actions', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textMain, letterSpacing: -0.3)),
                 const SizedBox(height: 12),
-                _buildMenuSection([
-                  _profileTile(Icons.shopping_bag_outlined, 'My Orders', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyOrdersScreen()))),
-                  _profileTile(Icons.location_on_outlined, 'My Addresses', onTap: _openAddresses),
-                ]),
+                _profileTile(Icons.shopping_bag_outlined, 'My Orders', subtitle: 'Track your purchases', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyOrdersScreen()))),
+                _profileTile(Icons.location_on_outlined, 'My Addresses', subtitle: 'Manage delivery spots', onTap: _openAddresses),
                 const SizedBox(height: 28),
                 const Text('Support & Settings', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.textMain, letterSpacing: -0.3)),
                 const SizedBox(height: 12),
-                _buildMenuSection([
-                  _profileTile(Icons.help_outline_rounded, 'Help & Support', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpSupportScreen()))),
-                  _profileTile(Icons.logout_rounded, 'Logout', isDestructive: true, onTap: _logout, showBorder: false),
-                ]),
+                _profileTile(Icons.help_outline_rounded, 'Help & Support', subtitle: 'Get assistance', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpSupportScreen()))),
+                _profileTile(Icons.logout_rounded, 'Logout', subtitle: 'Sign out securely', isDestructive: true, onTap: _logout),
               ]),
             ),
           ),
@@ -752,18 +795,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMenuSection(List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [AppTheme.cardShadow],
-      ),
-      child: Column(
-        children: children,
-      ),
-    );
-  }
 
   Future<void> _openAddresses() async {
     if (_profile == null) {
@@ -794,40 +825,49 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _profileTile(
     IconData icon,
     String label, {
+    String? subtitle,
     bool isDestructive = false,
     VoidCallback? onTap,
-    bool showBorder = true,
   }) {
     final color = isDestructive ? Colors.redAccent : AppTheme.textMain;
-    return Container(
-      decoration: BoxDecoration(
-        border: showBorder ? const Border(bottom: BorderSide(color: AppTheme.surfaceLight, width: 1.5)) : null,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: showBorder ? BorderRadius.zero : const BorderRadius.vertical(bottom: Radius.circular(24)),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: isDestructive ? Colors.redAccent.withOpacity(0.08) : AppTheme.surfaceMuted,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: isDestructive ? Colors.redAccent : AppTheme.primaryDark, size: 20),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: AnimatedPressable(
+        onTap: onTap ?? () {},
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [AppTheme.softShadow],
+            border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: isDestructive ? Colors.redAccent.withValues(alpha: 0.08) : AppTheme.surfaceMuted,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: color)),
+                child: Icon(icon, color: isDestructive ? Colors.redAccent : AppTheme.primaryDark, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: color)),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(subtitle, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.textMuted)),
+                    ]
+                  ],
                 ),
-                Icon(Icons.chevron_right_rounded, color: isDestructive ? Colors.redAccent.withOpacity(0.4) : AppTheme.textMuted.withOpacity(0.5)),
-              ],
-            ),
+              ),
+              Icon(Icons.arrow_forward_rounded, color: isDestructive ? Colors.redAccent.withValues(alpha: 0.4) : AppTheme.primary.withValues(alpha: 0.5)),
+            ],
           ),
         ),
       ),
@@ -835,33 +875,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _ProfileQuickStat extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _ProfileQuickStat({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceLight,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.border),
-        ),
-        child: Column(
-          children: [
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-            const SizedBox(height: 2),
-            Text(label, style: const TextStyle(color: AppTheme.textMuted, fontSize: 11, fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _ProductCard extends StatelessWidget {
   final Map<String, dynamic> product;
@@ -871,8 +884,9 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return AnimatedPressable(
       onTap: onTap,
+      scaleDown: 0.98,
       child: Container(
         decoration: BoxDecoration(
           color: AppTheme.surface,
@@ -887,20 +901,16 @@ class _ProductCard extends StatelessWidget {
                 children: [
                   Container(
                     width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceMuted,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                    decoration: const BoxDecoration(
+                      color: AppTheme.surfaceLight,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                     ),
                     child: ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                      child: product['image'] != null && product['image'].toString().isNotEmpty
-                        ? Image.network(
-                            product['image'],
-                            fit: BoxFit.cover,
-                          )
-                        : Center(
-                            child: Text(product['emoji'], style: const TextStyle(fontSize: 50)),
-                          ),
+                      child: PremiumImage(
+                        imageUrl: product['image']?.toString(),
+                        fallbackUrl: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=400&auto=format&fit=crop',
+                      ),
                     ),
                   ),
                   Positioned(
@@ -908,9 +918,9 @@ class _ProductCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(12),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)],
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)],
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
@@ -942,14 +952,14 @@ class _ProductCard extends StatelessWidget {
                     children: [
                       Text(product['price'],
                         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.primaryDark)),
-                      GestureDetector(
+                      AnimatedPressable(
                         onTap: onAdd,
                         child: Container(
                           width: 32, height: 32,
                           decoration: BoxDecoration(
                             color: AppTheme.primary,
                             shape: BoxShape.circle,
-                            boxShadow: [BoxShadow(color: AppTheme.primary.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 3))],
+                            boxShadow: [BoxShadow(color: AppTheme.primary.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3))],
                           ),
                           child: const Icon(Icons.add, color: Colors.white, size: 20),
                         ),
@@ -973,7 +983,7 @@ class _ProductSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
       baseColor: AppTheme.surfaceLight,
-      highlightColor: Colors.white.withOpacity(0.5),
+      highlightColor: Colors.white.withValues(alpha: 0.5),
       child: Container(
         decoration: BoxDecoration(
           color: AppTheme.surfaceLight,
@@ -1044,11 +1054,10 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
             child: Container(
               width: double.infinity, height: 220,
               color: AppTheme.surfaceLight,
-              child: product['image'] != null && product['image'].toString().isNotEmpty
-                ? Image.network(product['image'], fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Center(
-                      child: Text(product['emoji'], style: const TextStyle(fontSize: 72))))
-                : Center(child: Text(product['emoji'], style: const TextStyle(fontSize: 72))),
+              child: PremiumImage(
+                imageUrl: product['image']?.toString(),
+                fallbackUrl: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=800&auto=format&fit=crop',
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -1069,7 +1078,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                 ),
               ),
               Text(_calculatedPrice,
-                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppTheme.primaryLight)),
+                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppTheme.primaryDark)),
             ],
           ),
           const SizedBox(height: 24),
@@ -1087,7 +1096,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                   label: Text(weight),
                   selected: selected,
                   onSelected: (_) => setState(() => _weight = weight),
-                  selectedColor: AppTheme.primary.withOpacity(0.18),
+                  selectedColor: AppTheme.primary.withValues(alpha: 0.18),
                   labelStyle: TextStyle(color: selected ? AppTheme.primaryDark : AppTheme.textMuted, fontWeight: FontWeight.w700),
                   side: BorderSide(color: selected ? AppTheme.primary : AppTheme.border),
                 );
@@ -1095,7 +1104,7 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
             ),
             const SizedBox(height: 24),
           ],
-          GestureDetector(
+          AnimatedPressable(
             onTap: () => widget.onAdd(supportsWeight ? _weight : product['unit'].toString()),
             child: Container(
               width: double.infinity, height: 60,
@@ -1103,12 +1112,12 @@ class _ProductDetailSheetState extends State<_ProductDetailSheet> {
                 gradient: AppTheme.greenGradient,
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
-                  BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))
+                  BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))
                 ],
               ),
               child: Center(
                 child: Text(supportsWeight ? 'Add $_weight to Cart' : 'Add to Cart',
-                    style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800)),
+                    style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800)),
               ),
             ),
           ),

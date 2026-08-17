@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/api_service.dart';
+import 'package:skyfresh/widgets/animated_pressable.dart';
 
 
 
@@ -32,7 +33,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           'title': n['title'] ?? 'Notification',
           'body': n['body'] ?? '',
           'time': _formatTime(n['createdAt']),
-          'icon': n['icon'] ?? '🔔',
           'color': _hexToInt(n['color'] ?? '#DCFCE7'),
           'unread': n['unread'] ?? false,
         };
@@ -89,7 +89,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         backgroundColor: AppTheme.surface,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Notifications 🔔', style: TextStyle(color: AppTheme.textMain, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
+        title: const Text('Notifications', style: TextStyle(color: AppTheme.textMain, fontWeight: FontWeight.w800, letterSpacing: -0.3)),
         centerTitle: true,
         actions: [
           if (_unreadCount > 0)
@@ -97,7 +97,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               margin: const EdgeInsets.only(right: 16),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppTheme.primaryLight.withOpacity(0.3),
+                color: AppTheme.primaryLight.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text('$_unreadCount new', style: const TextStyle(color: AppTheme.primaryDark, fontSize: 13, fontWeight: FontWeight.w800)),
@@ -114,7 +114,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   Container(
                     width: 120, height: 120,
                     decoration: const BoxDecoration(color: AppTheme.surfaceMuted, shape: BoxShape.circle),
-                    child: const Center(child: Text('🔕', style: TextStyle(fontSize: 56))),
+                    child: const Center(child: Icon(Icons.notifications_off_outlined, size: 56, color: AppTheme.textMuted)),
                   ),
                   const SizedBox(height: 24),
                   const Text('No notifications yet', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.5, color: AppTheme.textMain)),
@@ -142,16 +142,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ),
                   child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 28),
                 ),
-                child: GestureDetector(
+                child: AnimatedPressable(
                   onTap: () => _markRead(i),
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: n['unread'] == true ? AppTheme.primaryLight.withOpacity(0.15) : AppTheme.surface,
+                      color: n['unread'] == true ? AppTheme.primaryLight.withValues(alpha: 0.15) : AppTheme.surface,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: n['unread'] == true ? AppTheme.primary.withOpacity(0.3) : AppTheme.border.withOpacity(0.5),
+                        color: n['unread'] == true ? AppTheme.primary.withValues(alpha: 0.3) : AppTheme.border.withValues(alpha: 0.5),
                         width: n['unread'] == true ? 2 : 1,
                       ),
                       boxShadow: [AppTheme.cardShadow],
@@ -162,10 +162,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         Container(
                           width: 56, height: 56,
                           decoration: BoxDecoration(
-                            color: Color(n['color']).withOpacity(0.2),
+                            color: Color(n['color']).withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Center(child: Text(n['icon'], style: const TextStyle(fontSize: 26))),
+                          child: Center(child: Icon(Icons.notifications_active_rounded, color: Color(n['color']), size: 26)),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
