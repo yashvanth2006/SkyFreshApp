@@ -253,10 +253,10 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
                           margin: const EdgeInsets.only(bottom: 16),
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: address.isDefault ? AppTheme.primaryLight.withOpacity(0.3) : AppTheme.surface,
+                            color: address.isDefault ? AppTheme.primaryLight.withValues(alpha: 0.3) : AppTheme.surface,
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(
-                              color: address.isDefault ? AppTheme.primary : AppTheme.border.withOpacity(0.5),
+                              color: address.isDefault ? AppTheme.primary : AppTheme.border.withValues(alpha: 0.5),
                               width: address.isDefault ? 2 : 1,
                             ),
                             boxShadow: [AppTheme.cardShadow],
@@ -269,7 +269,7 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: address.isDefault ? AppTheme.primary.withOpacity(0.1) : AppTheme.surfaceMuted,
+                                      color: address.isDefault ? AppTheme.primary.withValues(alpha: 0.1) : AppTheme.surfaceMuted,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Icon(
@@ -286,7 +286,7 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: AppTheme.primary.withOpacity(0.12),
+                                        color: AppTheme.primary.withValues(alpha: 0.12),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: const Text('Default', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.primaryDark)),

@@ -87,7 +87,7 @@ class HelpSupportScreen extends StatelessWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryLight.withOpacity(0.18),
+                        color: AppTheme.primaryLight.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(Icons.storefront_rounded, color: AppTheme.primaryDark),
@@ -215,7 +215,7 @@ class _ContactTile extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppTheme.primaryLight.withOpacity(0.18),
+              color: AppTheme.primaryLight.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: AppTheme.primaryDark),

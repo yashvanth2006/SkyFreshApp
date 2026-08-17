@@ -67,13 +67,13 @@ class _SplashScreenState extends State<SplashScreen>
             top: -120,
             right: -120,
             child: Container(
-              width: 280,
-              height: 280,
+              width: 320,
+              height: 320,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppTheme.primary.withOpacity(0.22),
+                    AppTheme.primary.withValues(alpha: 0.15),
                     Colors.transparent,
                   ],
                 ),
@@ -84,13 +84,13 @@ class _SplashScreenState extends State<SplashScreen>
             bottom: -140,
             left: -110,
             child: Container(
-              width: 340,
-              height: 340,
+              width: 380,
+              height: 380,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppTheme.primaryLight.withOpacity(0.22),
+                    AppTheme.primaryDark.withValues(alpha: 0.1),
                     Colors.transparent,
                   ],
                 ),
@@ -106,29 +106,24 @@ class _SplashScreenState extends State<SplashScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 120,
-                      height: 120,
+                      width: 130,
+                      height: 130,
                       decoration: BoxDecoration(
                         color: AppTheme.surface,
-                        borderRadius: BorderRadius.circular(34),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 30,
-                            offset: const Offset(0, 16),
-                          ),
-                        ],
+                        borderRadius: BorderRadius.circular(36),
+                        boxShadow: [AppTheme.cardShadow],
+                        border: Border.all(color: AppTheme.border.withValues(alpha: 0.5)),
                       ),
-                      child: const Center(
-                        child: Text('🌿', style: TextStyle(fontSize: 56)),
+                      child: Center(
+                        child: Icon(Icons.spa_rounded, size: 64, color: AppTheme.primary),
                       ),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 32),
                     RichText(
                       textAlign: TextAlign.center,
                       text: const TextSpan(
                         style: TextStyle(
-                          fontSize: 42,
+                          fontSize: 48,
                           fontWeight: FontWeight.w900,
                           letterSpacing: -1.5,
                           color: AppTheme.textMain,
@@ -145,23 +140,24 @@ class _SplashScreenState extends State<SplashScreen>
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 32),
+                      padding: EdgeInsets.symmetric(horizontal: 40),
                       child: Text(
-                        'Fresh groceries delivered in minutes, with a premium app experience.',
+                        'Premium fresh groceries.\nDelivered to your door.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                           color: AppTheme.textMuted,
-                          height: 1.6,
+                          height: 1.5,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 54),
+                    const SizedBox(height: 64),
                     const SizedBox(
-                      width: 34,
-                      height: 34,
+                      width: 32,
+                      height: 32,
                       child: CircularProgressIndicator(
                         color: AppTheme.primary,
                         strokeWidth: 3,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/api_service.dart';
+import 'package:skyfresh/widgets/premium_image.dart';
 
 
 // Helper for readable status
@@ -138,7 +139,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
-                                      color: _statusColor(status).withOpacity(0.12),
+                                      color: _statusColor(status).withValues(alpha: 0.12),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
@@ -155,8 +156,14 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                                       children: [
                                         Container(
                                           width: 44, height: 44,
-                                          decoration: BoxDecoration(color: AppTheme.surfaceMuted, borderRadius: BorderRadius.circular(12)),
-                                          child: Center(child: Text(item['emoji']?.toString() ?? '🛒', style: const TextStyle(fontSize: 20))),
+                                          decoration: BoxDecoration(color: AppTheme.surfaceLight, borderRadius: BorderRadius.circular(12)),
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(12),
+                                            child: PremiumImage(
+                                              imageUrl: item['image']?.toString(),
+                                              fallbackUrl: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=400&auto=format&fit=crop',
+                                            ),
+                                          ),
                                         ),
                                         const SizedBox(width: 12),
                                         Expanded(

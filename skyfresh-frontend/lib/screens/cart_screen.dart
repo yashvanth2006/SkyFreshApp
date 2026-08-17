@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:skyfresh/cart_provider.dart';
 import 'package:skyfresh/screens/checkout_screen.dart';
 import 'package:skyfresh/theme.dart';
+import 'package:skyfresh/widgets/animated_pressable.dart';
+import 'package:skyfresh/widgets/premium_image.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -60,12 +62,12 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppTheme.primary.withOpacity(0.1),
+                        color: AppTheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text('${cart.totalItems} items',
                         style: const TextStyle(color: AppTheme.primaryDark,
-                            fontWeight: FontWeight.w700, fontSize: 13)),
+                            fontWeight: FontWeight.w800, fontSize: 13)),
                     ),
                 ],
               ),
@@ -79,12 +81,12 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
                       children: [
                         Container(
                           width: 100, height: 100,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppTheme.surfaceMuted,
                             shape: BoxShape.circle,
                           ),
                           child: const Center(
-                            child: Text('🛒', style: TextStyle(fontSize: 48))),
+                            child: Icon(Icons.shopping_cart_outlined, size: 48, color: AppTheme.textMuted)),
                         ),
                         const SizedBox(height: 24),
                         const Text('Your cart is empty',
@@ -111,7 +113,7 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
                           padding: const EdgeInsets.only(right: 24),
                           alignment: Alignment.centerRight,
                           decoration: BoxDecoration(
-                            color: Colors.redAccent.withOpacity(0.1),
+                            color: Colors.redAccent.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20)),
                           child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
                         ),
@@ -128,11 +130,15 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
                               Container(
                                 width: 64, height: 64,
                                 decoration: BoxDecoration(
-                                  color: AppTheme.surfaceMuted,
+                                  color: AppTheme.surfaceLight,
                                   borderRadius: BorderRadius.circular(16)),
-                                child: Center(
-                                  child: Text(item.emoji,
-                                    style: const TextStyle(fontSize: 32))),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: PremiumImage(
+                                    imageUrl: item.image,
+                                    fallbackUrl: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=400&auto=format&fit=crop',
+                                  ),
+                                ),
                               ),
                               const SizedBox(width: 16),
 
@@ -201,7 +207,7 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
                   color: AppTheme.surface,
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                   boxShadow: [BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
+                    color: Colors.black.withValues(alpha: 0.06),
                     blurRadius: 24, offset: const Offset(0, -8))],
                 ),
                 child: Column(
@@ -218,7 +224,7 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          color: AppTheme.primary.withOpacity(0.08),
+                          color: AppTheme.primary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(
@@ -251,7 +257,7 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
                       ],
                     ),
                     const SizedBox(height: 28),
-                    GestureDetector(
+                    AnimatedPressable(
                       onTap: _placingOrder
                         ? null
                         : () => _startCheckout(cart, cart.totalPrice, deliveryFee, grandTotal),
@@ -263,7 +269,7 @@ Future<void> _startCheckout(CartProvider cart, int subtotal, int deliveryFee, in
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: _placingOrder ? [] : [
                             BoxShadow(
-                              color: AppTheme.primary.withOpacity(0.3),
+                              color: AppTheme.primary.withValues(alpha: 0.3),
                               blurRadius: 20, offset: const Offset(0, 8))
                           ],
                         ),
@@ -313,7 +319,7 @@ class _QtyBtn extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppTheme.surface,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 2))],
         ),
         child: Icon(icon, size: 18, color: AppTheme.textMain),
       ),

@@ -3,7 +3,8 @@ import 'package:skyfresh/theme.dart';
 import 'package:skyfresh/api_service.dart';
 import 'package:skyfresh/cart_provider.dart';
 import 'package:provider/provider.dart';
-
+import 'package:skyfresh/widgets/premium_image.dart';
+import 'package:skyfresh/widgets/animated_pressable.dart';
 class AiScreen extends StatefulWidget {
   const AiScreen({super.key});
 
@@ -151,7 +152,7 @@ class _AiScreenState extends State<AiScreen> {
                           bottomRight: message.isUser ? const Radius.circular(4) : const Radius.circular(20),
                           bottomLeft: !message.isUser ? const Radius.circular(4) : const Radius.circular(20),
                         ),
-                        boxShadow: message.isUser ? [BoxShadow(color: AppTheme.primary.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 4))] : [AppTheme.cardShadow],
+                        boxShadow: message.isUser ? [BoxShadow(color: AppTheme.primary.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 4))] : [AppTheme.cardShadow],
                       ),
                       child: Text(message.text, style: TextStyle(color: message.isUser ? Colors.white : AppTheme.textMain, height: 1.4, fontSize: 15, fontWeight: FontWeight.w500)),
                     ),
@@ -163,7 +164,7 @@ class _AiScreenState extends State<AiScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
               decoration: BoxDecoration(
                 color: AppTheme.surface,
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4))],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -4))],
               ),
               child: Row(children: [
                 Expanded(
@@ -189,7 +190,7 @@ class _AiScreenState extends State<AiScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                GestureDetector(
+                AnimatedPressable(
                   onTap: _isLoading ? null : _ask,
                   child: Container(
                     height: 52, width: 52,
@@ -197,7 +198,7 @@ class _AiScreenState extends State<AiScreen> {
                       gradient: _isLoading ? null : AppTheme.greenGradient,
                       color: _isLoading ? AppTheme.surfaceMuted : null,
                       shape: BoxShape.circle,
-                      boxShadow: _isLoading ? [] : [BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))],
+                      boxShadow: _isLoading ? [] : [BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 12, offset: const Offset(0, 4))],
                     ),
                     child: _isLoading 
                       ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryDark)))
@@ -249,37 +250,25 @@ class _RecommendedProductCard extends StatelessWidget {
             child: Stack(
               children: [
                 Positioned.fill(
-                  child: product['image'] != null && product['image'].toString().isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                        child: Image.network(
-                          product['image'],
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: Color(_hexToInt(product['color'] ?? '#DCFCE7')).withOpacity(0.15),
-                            child: Center(child: Text(product['emoji'] ?? '🍎', style: const TextStyle(fontSize: 44))),
-                          ),
-                        ),
-                      )
-                    : Container(
-                        decoration: BoxDecoration(
-                          color: Color(_hexToInt(product['color'] ?? '#DCFCE7')).withOpacity(0.15),
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                        ),
-                        child: Center(child: Text(product['emoji'] ?? '🍎', style: const TextStyle(fontSize: 44))),
-                      ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    child: PremiumImage(
+                      imageUrl: product['image']?.toString(),
+                      fallbackUrl: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=400&auto=format&fit=crop',
+                    ),
+                  ),
                 ),
                 Positioned(
                   bottom: 10,
                   right: 10,
-                  child: GestureDetector(
+                  child: AnimatedPressable(
                     onTap: onAdd,
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: AppTheme.primary,
                         shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: AppTheme.primary.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 4))],
+                        boxShadow: [BoxShadow(color: AppTheme.primary.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 4))],
                       ),
                       child: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
                     ),

@@ -8,6 +8,7 @@ class CartItem {
   final String emoji;
   final String unit;
   final String weight;
+  final String? image;
   int quantity;
 
   CartItem({
@@ -16,6 +17,7 @@ class CartItem {
     required this.emoji,
     required this.unit,
     required this.weight,
+    this.image,
     this.quantity = 1,
   });
 
@@ -29,6 +31,7 @@ class CartItem {
       'emoji': emoji,
       'unit': unit,
       'weight': weight,
+      'image': image,
       'quantity': quantity,
     };
   }
@@ -40,6 +43,7 @@ class CartItem {
       emoji: json['emoji'],
       unit: json['unit'],
       weight: json['weight'],
+      image: json['image'],
       quantity: json['quantity'] ?? 1,
     );
   }
@@ -98,6 +102,7 @@ class CartProvider extends ChangeNotifier {
         emoji: product['emoji'],
         unit:  product['unit'],
         weight: selectedWeight,
+        image: product['image']?.toString(),
       ));
     }
     notifyListeners();
