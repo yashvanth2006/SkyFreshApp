@@ -307,36 +307,6 @@ class ApiService {
     }
   }
 
-  static Future<List<Map<String, dynamic>>> fetchAllOrders() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/admin/orders'),
-      );
-      final data = jsonDecode(response.body);
-      if (data['success'] == true && data['orders'] != null) {
-        return List<Map<String, dynamic>>.from(data['orders']);
-      }
-      return [];
-    } catch (e) {
-      return [];
-    }
-  }
-
-  static Future<Map<String, dynamic>> updateOrderStatus(String orderId, String status) async {
-    try {
-      final response = await http.put(
-        Uri.parse('$baseUrl/admin/orders/$orderId/status'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({'status': status}),
-      );
-      return jsonDecode(response.body);
-    } catch (e) {
-      return {'success': false, 'message': 'Failed to update order status'};
-    }
-  }
-
   static Future<Map<String, dynamic>> updateFcmToken(String fcmToken) async {
     try {
       final token = await getToken();
