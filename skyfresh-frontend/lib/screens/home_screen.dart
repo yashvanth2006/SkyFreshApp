@@ -1114,6 +1114,7 @@ class _BannerSlideWidget extends StatelessWidget {
                 ),
               ],
             ),
+           ),
           ),
         ],
       ),
