@@ -1057,9 +1057,12 @@ class _BannerSlideWidget extends StatelessWidget {
           // ── Text + CTA content ────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(22, 20, 100, 18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Title
                 Text(
