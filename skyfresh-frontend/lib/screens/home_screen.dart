@@ -451,68 +451,11 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                child: AnimatedPressable(
-                  onTap: () {}, // Banner action
-                  child: Container(
-                    width: double.infinity,
-                    height: 160,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [AppTheme.cardShadow],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: PremiumImage(
-                              fallbackUrl: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=1470&auto=format&fit=crop', // Realistic fresh fruit background
-                            ),
-                          ),
-                          Positioned.fill(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    AppTheme.primaryDark.withValues(alpha: 0.85),
-                                    AppTheme.primaryDark.withValues(alpha: 0.2),
-                                  ],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(24, 24, 16, 20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text('Premium Freshness',
-                                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800,
-                                      letterSpacing: -0.3, color: Colors.white)),
-                                const SizedBox(height: 6),
-                                const Text('Get 20% off on exotic fruits',
-                                  style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
-                                const Spacer(),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
-                                  ),
-                                  child: const Text('Order Now',
-                                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                child: _PromoBanner(
+                  onCategorySelected: (categoryIndex) {
+                    setState(() => _selectedCategory = categoryIndex);
+                    _fetchDynamicProducts();
+                  },
                 ),
               ),
             ),
@@ -875,6 +818,381 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+
+// ---------------------------------------------------------------------------
+// Promotional banner data model
+// ---------------------------------------------------------------------------
+class _BannerSlide {
+  final String title;
+  final String description;
+  final String supportingText;
+  final String ctaLabel;
+  final String imageUrl;
+  final int categoryIndex; // maps to _HomeScreenState._categories index
+
+  const _BannerSlide({
+    required this.title,
+    required this.description,
+    required this.supportingText,
+    required this.ctaLabel,
+    required this.imageUrl,
+    required this.categoryIndex,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Auto-sliding 16:9 promotional carousel
+// ---------------------------------------------------------------------------
+class _PromoBanner extends StatefulWidget {
+  final ValueChanged<int> onCategorySelected;
+
+  const _PromoBanner({required this.onCategorySelected});
+
+  @override
+  State<_PromoBanner> createState() => _PromoBannerState();
+}
+
+class _PromoBannerState extends State<_PromoBanner> {
+  // ---------------------------------------------------------------------------
+  // Centralized banner data — easy to update or extend.
+  // ---------------------------------------------------------------------------
+  static const List<_BannerSlide> _slides = [
+    _BannerSlide(
+      title: 'Fresh Fruits',
+      description: "Nature's goodness, handpicked fresh for you.",
+      supportingText: 'Farm fresh  •  Naturally delicious',
+      ctaLabel: 'Shop Fruits',
+      imageUrl:
+          'https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=1470&auto=format&fit=crop',
+      categoryIndex: 1, // Fruits
+    ),
+    _BannerSlide(
+      title: 'Refreshing Juices',
+      description: 'Pure. Refreshing. Made from real fruits.',
+      supportingText: 'Freshly made  •  Naturally refreshing',
+      ctaLabel: 'Explore Juices',
+      imageUrl:
+          'https://images.unsplash.com/photo-1546173159-315724a31696?q=80&w=1470&auto=format&fit=crop',
+      categoryIndex: 2, // Juices
+    ),
+    _BannerSlide(
+      title: 'Fresh Cuts',
+      description: 'Cut fresh. Packed fresh. Ready to enjoy.',
+      supportingText: 'Freshly prepared  •  Hygienically packed',
+      ctaLabel: 'Explore Fresh Cuts',
+      imageUrl:
+          'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?q=80&w=1470&auto=format&fit=crop',
+      categoryIndex: 3, // Fresh Cuts
+    ),
+  ];
+
+  late final PageController _pageController;
+  Timer? _autoTimer;
+  int _currentPage = 0;
+
+  // We use a large virtual page count for infinite looping.
+  static const int _virtualPageCount = 30000;
+  static const int _initialPage = 15000;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _initialPage);
+    _startAutoTimer();
+  }
+
+  @override
+  void dispose() {
+    _autoTimer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _startAutoTimer() {
+    _autoTimer?.cancel();
+    _autoTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted || !_pageController.hasClients) return;
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  void _onPageChanged(int virtualPage) {
+    setState(() => _currentPage = virtualPage % _slides.length);
+  }
+
+  void _onUserInteraction() {
+    // Reset timer when user swipes manually
+    _startAutoTimer();
+  }
+
+  void _selectSlideCategory(int slideIndex) {
+    widget.onCategorySelected(_slides[slideIndex].categoryIndex);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // ── 16:9 banner ──────────────────────────────────────────────────────
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (n) {
+                // Detect manual drag and reset the auto-timer
+                if (n is ScrollStartNotification &&
+                    n.dragDetails != null) {
+                  _onUserInteraction();
+                }
+                return false;
+              },
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                itemCount: _virtualPageCount,
+                itemBuilder: (context, virtualIndex) {
+                  final slide = _slides[virtualIndex % _slides.length];
+                  return _BannerSlideWidget(
+                    slide: slide,
+                    onTap: () => _selectSlideCategory(
+                        virtualIndex % _slides.length),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+
+        // ── Page dot indicators ───────────────────────────────────────────
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(_slides.length, (i) {
+            final active = i == _currentPage;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: active ? 20 : 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: active
+                    ? AppTheme.primary
+                    : AppTheme.textMuted.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Individual slide widget — keeps the carousel builder clean
+// ---------------------------------------------------------------------------
+class _BannerSlideWidget extends StatelessWidget {
+  final _BannerSlide slide;
+  final VoidCallback onTap;
+
+  const _BannerSlideWidget({required this.slide, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // ── Background image ──────────────────────────────────────────────
+          Image.network(
+            slide.imageUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              color: AppTheme.primaryDark,
+            ),
+            loadingBuilder: (ctx, child, progress) {
+              if (progress == null) return child;
+              return Container(color: AppTheme.surfaceLight);
+            },
+          ),
+
+          // ── Dark gradient overlay (left→right, heavier on left for text) ─
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primaryDark.withValues(alpha: 0.88),
+                  AppTheme.primaryDark.withValues(alpha: 0.55),
+                  Colors.transparent,
+                ],
+                stops: const [0.0, 0.45, 1.0],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+            ),
+          ),
+
+          // ── Bottom vignette so indicators area doesn't clip text ──────────
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.25),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
+
+          // ── Text + CTA content ────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 20, 100, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Title
+                Text(
+                  slide.title,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.4,
+                    color: Colors.white,
+                    height: 1.15,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+
+                // Description
+                Text(
+                  slide.description,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.88),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    height: 1.4,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+
+                // Supporting text
+                Text(
+                  slide.supportingText,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.65),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 14),
+
+                // CTA button
+                _CtaButton(
+                  label: slide.ctaLabel,
+                  onTap: onTap,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Reusable CTA button with press animation
+// ---------------------------------------------------------------------------
+class _CtaButton extends StatefulWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _CtaButton({required this.label, required this.onTap});
+
+  @override
+  State<_CtaButton> createState() => _CtaButtonState();
+}
+
+class _CtaButtonState extends State<_CtaButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 90),
+      reverseDuration: const Duration(milliseconds: 130),
+    );
+    _scale = Tween<double>(begin: 1.0, end: 0.93)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _ctrl.forward(),
+      onTapUp: (_) {
+        _ctrl.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () => _ctrl.reverse(),
+      behavior: HitTestBehavior.opaque,
+      child: ScaleTransition(
+        scale: _scale,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.18),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Text(
+            widget.label,
+            style: const TextStyle(
+              color: AppTheme.primaryDark,
+              fontWeight: FontWeight.w800,
+              fontSize: 12,
+              letterSpacing: 0.1,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _ProductCard extends StatelessWidget {
   final Map<String, dynamic> product;
