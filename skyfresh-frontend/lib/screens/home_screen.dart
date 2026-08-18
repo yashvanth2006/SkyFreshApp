@@ -111,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _logout() async {
+  Future<void> _performLogout() async {
     await ApiService.logout();
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
@@ -119,6 +119,66 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(builder: (_) => const LoginScreen()),
       (route) => false,
     );
+  }
+
+  Future<void> _logout() async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: AppTheme.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text(
+            'Logout',
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textMain,
+            ),
+          ),
+          content: const Text(
+            'Are you sure you want to logout?',
+            style: TextStyle(
+              color: AppTheme.textMuted,
+              fontSize: 15,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text(
+                'CANCEL',
+                style: TextStyle(
+                  color: AppTheme.textMuted,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'LOGOUT',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      await _performLogout();
+    }
   }
 
   Future<void> _fetchDynamicProducts() async {
@@ -1116,6 +1176,7 @@ class _BannerSlideWidget extends StatelessWidget {
             ),
            ),
           ),
+        ),
         ],
       ),
     );
