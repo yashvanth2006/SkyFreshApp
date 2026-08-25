@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/logo.jpg" alt="SkyFresh Logo" width="250"/>
+  <img src="assets/logo.png" alt="SkyFresh Logo" width="250"/>
 
   # 🌿 SkyFresh E-Commerce & Fresh Produce App
 
