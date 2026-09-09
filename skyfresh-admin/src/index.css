@@ -57,6 +57,7 @@ h2, h3 {
   font-size: 1.8rem;
   background: var(--gradient-primary);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
 }
@@ -120,6 +121,7 @@ h2, h3 {
   font-weight: 700;
   background: var(--gradient-primary);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -155,6 +157,7 @@ h2, h3 {
   letter-spacing: 1px;
   background: var(--gradient-primary);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
