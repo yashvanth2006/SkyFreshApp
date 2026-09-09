@@ -16,22 +16,19 @@ const Sidebar = ({ isOpen, onClose }) => {
         onClick={onClose}
       />
       <aside className={`sidebar-container ${isOpen ? 'open' : ''}`}>
-        <div style={styles.logoContainer}>
-          <h2 style={styles.logoText}>SKYfresh Admin</h2>
+        <div className="sidebar-logo-container">
+          <h2 className="sidebar-logo-text">SKYfresh Admin</h2>
         </div>
-        <nav style={styles.nav}>
+        <nav className="nav-menu">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.to === '/'}
               onClick={onClose}
-              style={({ isActive }) => ({
-                ...styles.navLink,
-                ...(isActive ? styles.activeLink : {})
-              })}
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             >
-              <span style={styles.icon}>{item.icon}</span>
+              <span className="nav-icon">{item.icon}</span>
               <span>{item.label}</span>
             </NavLink>
           ))}
@@ -39,43 +36,6 @@ const Sidebar = ({ isOpen, onClose }) => {
       </aside>
     </>
   );
-};
-
-const styles = {
-  logoContainer: {
-    paddingBottom: '20px',
-    borderBottom: '1px solid #1e293b',
-    marginBottom: '20px',
-    textAlign: 'center'
-  },
-  logoText: {
-    margin: 0,
-    fontSize: '1.25rem',
-    color: '#38bdf8'
-  },
-  nav: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px'
-  },
-  navLink: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '10px 16px',
-    borderRadius: '6px',
-    color: '#94a3b8',
-    textDecoration: 'none',
-    fontWeight: '500',
-    transition: 'all 0.2s ease'
-  },
-  activeLink: {
-    backgroundColor: '#1e293b',
-    color: '#38bdf8'
-  },
-  icon: {
-    fontSize: '1.2rem'
-  }
 };
 
 export default Sidebar;
