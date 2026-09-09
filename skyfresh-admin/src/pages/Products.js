@@ -102,11 +102,11 @@ const Products = () => {
 
   return (
     <div>
-      <h2>Product Catalog Management</h2>
+      <h2 className="page-title">Product Catalog Management</h2>
       
       {/* Product Form */}
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <h3>{isEditing ? 'Edit Product' : 'Add New Product'}</h3>
+      <form onSubmit={handleSubmit} className="glass-panel form-container">
+        <h3 className="form-title">{isEditing ? 'Edit Product' : 'Add New Product'}</h3>
         <div className="product-form-group">
           <input
             type="text"
@@ -115,7 +115,7 @@ const Products = () => {
             value={formData.name}
             onChange={handleChange}
             required
-            style={styles.input}
+            className="form-input"
           />
           <input
             type="number"
@@ -124,7 +124,7 @@ const Products = () => {
             value={formData.price}
             onChange={handleChange}
             required
-            style={styles.input}
+            className="form-input"
           />
           <input
             type="text"
@@ -133,7 +133,7 @@ const Products = () => {
             value={formData.unit}
             onChange={handleChange}
             required
-            style={styles.input}
+            className="form-input"
           />
           
           {/* UPDATED: Category Dropdown */}
@@ -142,7 +142,7 @@ const Products = () => {
             value={formData.category}
             onChange={handleChange}
             required
-            style={styles.input}
+            className="form-input"
           >
             <option value="" disabled>Select Category</option>
             <option value="Fruits">Fruits</option>
@@ -156,7 +156,7 @@ const Products = () => {
             value={formData.stock}
             onChange={handleChange}
             required
-            style={styles.input}
+            className="form-input"
           />
           <input
             type="text"
@@ -164,15 +164,15 @@ const Products = () => {
             placeholder="Image URL (optional - auto-filled if empty)"
             value={formData.image}
             onChange={handleChange}
-            style={styles.input}
+            className="form-input"
           />
         </div>
-        <div style={{ marginTop: '16px' }}>
-          <button type="submit" style={styles.btnPrimary}>
+        <div style={{ marginTop: '20px', display: 'flex', gap: '12px' }}>
+          <button type="submit" className="btn btn-primary">
             {isEditing ? 'Update Product' : 'Save Product'}
           </button>
           {isEditing && (
-            <button type="button" onClick={resetForm} style={styles.btnSecondary}>
+            <button type="button" onClick={resetForm} className="btn btn-secondary">
               Cancel
             </button>
           )}
@@ -184,54 +184,45 @@ const Products = () => {
       {loading ? (
         <p>Loading products...</p>
       ) : (
-        <div className="table-responsive-wrapper">
-          <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Name</th>
-              <th style={styles.th}>Category</th>
-              <th style={styles.th}>Price</th>
-              <th style={styles.th}>Stock</th>
-              <th style={styles.th}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((p) => (
-              <tr key={p.id || p._id}>
-                <td style={styles.td}>{p.name}</td>
-                <td style={styles.td}>{p.category}</td>
-                <td style={styles.td}>₹{p.price} / {p.unit}</td>
-                <td style={styles.td}>{p.stock}</td>
-                <td style={styles.td}>
-                  <button onClick={() => handleEdit(p)} style={styles.btnSmall}>
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteProduct(p.id || p._id)}
-                    style={{ ...styles.btnSmall, backgroundColor: '#ef4444' }}
-                  >
-                    Remove
-                  </button>
-                </td>
+        <div className="table-container">
+          <div className="table-wrapper">
+            <table className="modern-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-          </table>
+            </thead>
+            <tbody>
+              {products.map((p) => (
+                <tr key={p.id || p._id}>
+                  <td>{p.name}</td>
+                  <td>{p.category}</td>
+                  <td>₹{p.price} / {p.unit}</td>
+                  <td>{p.stock}</td>
+                  <td style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => handleEdit(p)} className="btn btn-primary btn-small">
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(p.id || p._id)}
+                      className="btn btn-danger btn-small"
+                    >
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
   );
-};
-
-const styles = {
-  form: { backgroundColor: '#fff', padding: '20px', borderRadius: '8px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
-  input: { padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', outline: 'none', backgroundColor: '#fff' },
-  btnPrimary: { padding: '8px 16px', backgroundColor: '#0284c7', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '8px' },
-  btnSecondary: { padding: '8px 16px', backgroundColor: '#64748b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' },
-  btnSmall: { padding: '4px 8px', backgroundColor: '#0284c7', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '6px' },
-  table: { width: '100%', borderCollapse: 'collapse', backgroundColor: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
-  th: { padding: '12px 16px', textAlign: 'left', backgroundColor: '#f1f5f9', borderBottom: '1px solid #e2e8f0' },
-  td: { borderBottom: '1px solid #e2e8f0', padding: '12px 16px' }
 };
 
 export default Products;
