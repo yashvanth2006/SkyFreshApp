@@ -23,43 +23,45 @@ const Users = () => {
 
   return (
     <div>
-      <h2>User Management</h2>
+      <h2 className="page-title">User Management</h2>
       {loading ? (
         <p>Loading user list...</p>
       ) : (
-        <div className="table-responsive-wrapper">
-          <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>User ID</th>
-              <th style={styles.th}>Name</th>
-              <th style={styles.th}>Phone</th>
-              <th style={styles.th}>Registered</th>
-              <th style={styles.th}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id || user._id}>
-                <td style={styles.td}>#{(user.id || user._id || '').toString().slice(-6).toUpperCase()}</td>
-                <td style={styles.td}>{user.name || 'N/A'}</td>
-                <td style={styles.td}>{user.phone || 'N/A'}</td>
-                <td style={styles.td}>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</td>
-                <td style={styles.td}>{user.isVerified ? 'Verified' : 'Pending'}</td>
+        <div className="table-container">
+          <div className="table-wrapper">
+            <table className="modern-table">
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Registered</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-          </table>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id || user._id}>
+                  <td>#{(user.id || user._id || '').toString().slice(-6).toUpperCase()}</td>
+                  <td>{user.name || 'N/A'}</td>
+                  <td>{user.phone || 'N/A'}</td>
+                  <td style={{ color: 'var(--text-secondary)' }}>
+                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                  </td>
+                  <td>
+                    <span className={`badge ${user.isVerified ? 'badge-delivered' : 'badge-pending'}`}>
+                      {user.isVerified ? 'Verified' : 'Pending'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
   );
-};
-
-const styles = {
-  table: { width: '100%', borderCollapse: 'collapse', backgroundColor: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' },
-  th: { padding: '12px 16px', textAlign: 'left', backgroundColor: '#f1f5f9', borderBottom: '1px solid #e2e8f0' },
-  td: { padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }
 };
 
 export default Users;
